@@ -1,0 +1,67 @@
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Datasets, Imagery & Labels (Large Files)
+data/raw/
+data/processed/
+data/splits/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.geojson
+!stubs/*.geojson
+
+# Model Checkpoints & Weights
+checkpoints/
+models/*.pt
+models/*.pth
+models/*.onnx
+*.pt
+*.pth
+*.onnx
+
+# Frontend dependencies & builds
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.next/
+
+# Logs, Runs & Results
+logs/
+results/
+runs/
+*.log
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

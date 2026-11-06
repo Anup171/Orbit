@@ -1,0 +1,44 @@
+# Satellite Disaster Damage Assessment & Triage System Configuration
+
+data:
+  raw_train_dir: "data/raw/train"
+  raw_test_dir: "data/raw/test"
+  processed_dir: "data/processed"
+  splits_dir: "data/splits"
+  geotransforms_path: "data/raw/geotransforms.json"
+  tile_size: 512
+  original_size: 1024
+  num_workers: 4
+
+classes:
+  localization: ["background", "building"]
+  damage:
+    0: "no-damage"
+    1: "minor-damage"
+    2: "major-damage"
+    3: "destroyed"
+
+model:
+  backbone: "resnet34"
+  pretrained: true
+  fusion_type: "concat_diff_prod"  # Options: concat, diff, prod, concat_diff_prod
+  num_damage_classes: 4
+
+training:
+  batch_size: 16
+  epochs: 40
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  loss:
+    localization_bce_weight: 1.0
+    localization_dice_weight: 1.0
+    damage_focal_weight: 1.0
+    damage_dice_weight: 1.0
+    class_weights: [0.1, 0.4, 0.3, 0.2]  # Heavy weight on rare minor and major
+
+triage:
+  weights:
+    severity: 0.5
+    size: 0.3
+    travel_time: 0.2
+

@@ -1,0 +1,78 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "building_id": "bldg_001",
+        "damage_class": "destroyed",
+        "damage_score": 0.94,
+        "area_sq_m": 420.5,
+        "priority_rank": 1,
+        "confidence": 0.88,
+        "needs_manual_review": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.4194, 37.7749],
+            [-122.4191, 37.7749],
+            [-122.4191, 37.7746],
+            [-122.4194, 37.7746],
+            [-122.4194, 37.7749]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building_id": "bldg_002",
+        "damage_class": "major-damage",
+        "damage_score": 0.72,
+        "area_sq_m": 850.0,
+        "priority_rank": 2,
+        "confidence": 0.61,
+        "needs_manual_review": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.4185, 37.7748],
+            [-122.4180, 37.7748],
+            [-122.4180, 37.7743],
+            [-122.4185, 37.7743],
+            [-122.4185, 37.7748]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building_id": "bldg_003",
+        "damage_class": "no-damage",
+        "damage_score": 0.05,
+        "area_sq_m": 120.0,
+        "priority_rank": 3,
+        "confidence": 0.96,
+        "needs_manual_review": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-122.4175, 37.7745],
+            [-122.4171, 37.7745],
+            [-122.4171, 37.7741],
+            [-122.4175, 37.7741],
+            [-122.4175, 37.7745]
+          ]
+        ]
+      }
+    }
+  ]
+}
+
