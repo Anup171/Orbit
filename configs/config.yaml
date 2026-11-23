@@ -41,4 +41,8 @@ triage:
     severity: 0.5
     size: 0.3
     travel_time: 0.2
+  confidence_threshold: 0.6       # Flag buildings below this for manual review
+  network_radius_m: 5000          # OSMnx graph download radius
+  top_k_routes: 10                # Compute route geometries for top-k buildings
+  graph_cache_dir: "data/graphs"  # Cache downloaded road networks
 
