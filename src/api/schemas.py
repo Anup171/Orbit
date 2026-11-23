@@ -28,6 +28,22 @@ class TriageRequest(BaseModel):
     top_k_routes: int = Field(10, ge=1, le=100)
 
 
+class RoutePoint(BaseModel):
+    lat: float
+    lon: float
+    id: Optional[str] = None
+
+
+class RouteRequest(BaseModel):
+    """Body for POST /routes — compute road routes to buildings or coordinates."""
+    origin_lat: float
+    origin_lon: float
+    destinations: Optional[List[RoutePoint]] = None
+    job_id: Optional[str] = None
+    top_k: int = Field(10, ge=1, le=50)
+    use_osm: bool = Field(False, description="Whether to query live OpenStreetMap over network")
+
+
 # ──────────────────────────────────────────────────────────────
 # Response schemas
 # ──────────────────────────────────────────────────────────────
@@ -67,6 +83,12 @@ class JobResultsResponse(BaseModel):
     status: str
     summary: Optional[Dict[str, Any]] = None
     buildings: List[BuildingResponse] = []
+
+
+class RouteResponse(BaseModel):
+    origin: Dict[str, float]
+    total_routes: int
+    routes: List[Dict[str, Any]]
 
 
 class HealthResponse(BaseModel):

@@ -30,6 +30,11 @@ import networkx as nx
 try:
     import osmnx as ox
     HAS_OSMNX = True
+    try:
+        ox.settings.requests_timeout = 8
+        ox.settings.use_cache = True
+    except Exception:
+        pass
 except ImportError:
     HAS_OSMNX = False
 

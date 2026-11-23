@@ -68,7 +68,7 @@ export default function App() {
 
   const loadSampleData = useCallback(async () => {
     try {
-      const res = await fetch('/stubs/sample_triage.geojson');
+      const res = await fetch(`${API_BASE}/sample-triage`);
       const data = await res.json();
       setGeojsonData(data);
     } catch {

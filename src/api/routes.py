@@ -24,6 +24,8 @@ from src.database.models import AssessmentJob, BuildingRecord
 from src.api.schemas import (
     PredictRequest,
     TriageRequest,
+    RouteRequest,
+    RouteResponse,
     JobCreatedResponse,
     JobStatusResponse,
     JobResultsResponse,
@@ -286,3 +288,99 @@ def run_triage_endpoint(
         "message": "Triage re-run complete",
         "total_buildings": len(ranked),
     }
+
+
+# ──────────────────────────────────────────────────────────────
+# Routes computation
+# ──────────────────────────────────────────────────────────────
+
+@router.post("/routes", response_model=RouteResponse)
+def compute_routes(
+    request: RouteRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Computes emergency routes from origin (staging point) to target buildings
+    or given coordinates.
+    """
+    coords = []
+    if request.job_id:
+        records = (
+            db.query(BuildingRecord)
+            .filter(BuildingRecord.job_id == request.job_id)
+            .order_by(BuildingRecord.priority_rank)
+            .limit(request.top_k)
+            .all()
+        )
+        coords = [(r.centroid_lat, r.centroid_lon) for r in records if r.centroid_lat and r.centroid_lon]
+    elif request.destinations:
+        coords = [(d.lat, d.lon) for d in request.destinations[:request.top_k]]
+
+    if not coords:
+        return RouteResponse(
+            origin={"lat": request.origin_lat, "lon": request.origin_lon},
+            total_routes=0,
+            routes=[],
+        )
+
+    from src.triage.routing import RoadNetwork
+
+    routes = []
+    if request.use_osm:
+        try:
+            network = RoadNetwork.from_point(
+                center_lat=request.origin_lat,
+                center_lon=request.origin_lon,
+                dist_m=1000,
+                cache_dir="data/graphs",
+            )
+            routes = [
+                r for r in network.compute_routes_to_buildings(
+                    request.origin_lat, request.origin_lon, coords
+                )
+                if r is not None
+            ]
+        except Exception as e:
+            pass
+
+    # If no OSM routes (or use_osm=False), provide fast Euclidean emergency dispatch routes
+    if not routes:
+        for idx, (lat, lon) in enumerate(coords):
+            # approximate distance
+            dist_km = ((lat - request.origin_lat) ** 2 + (lon - request.origin_lon) ** 2) ** 0.5 * 111.0
+            routes.append({
+                "type": "Feature",
+                "properties": {
+                    "destination_index": idx,
+                    "distance_km": round(dist_km, 2),
+                    "travel_time_minutes": round(dist_km / 25.0 * 60.0, 1),  # 25 km/h avg
+                    "mode": "emergency_dispatch_direct",
+                },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [request.origin_lon, request.origin_lat],
+                        [lon, lat],
+                    ],
+                },
+            })
+
+    return RouteResponse(
+        origin={"lat": request.origin_lat, "lon": request.origin_lon},
+        total_routes=len(routes),
+        routes=routes,
+    )
+
+
+# ──────────────────────────────────────────────────────────────
+# Sample Triage GeoJSON
+# ──────────────────────────────────────────────────────────────
+
+@router.get("/sample-triage")
+def get_sample_triage():
+    """Returns sample triage GeoJSON for instant frontend testing."""
+    sample_path = "stubs/sample_triage.geojson"
+    if os.path.exists(sample_path):
+        with open(sample_path, "r") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Sample triage GeoJSON not found")
