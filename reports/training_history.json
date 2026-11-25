@@ -1,0 +1,57 @@
+[
+  {
+    "epoch": 1,
+    "train_loss": 1.5161,
+    "loc_f1": 0.6824,
+    "dmg_macro_f1": 0.2778,
+    "xview2_score": 0.3992,
+    "f1_none": 0.3628,
+    "f1_minor": 0.349,
+    "f1_major": 0.0965,
+    "f1_destroyed": 0.3031
+  },
+  {
+    "epoch": 2,
+    "train_loss": 1.0592,
+    "loc_f1": 0.6762,
+    "dmg_macro_f1": 0.2399,
+    "xview2_score": 0.3708,
+    "f1_none": 0.7062,
+    "f1_minor": 0.1723,
+    "f1_major": 0.0215,
+    "f1_destroyed": 0.0599
+  },
+  {
+    "epoch": 3,
+    "train_loss": 0.9426,
+    "loc_f1": 0.7802,
+    "dmg_macro_f1": 0.2602,
+    "xview2_score": 0.4162,
+    "f1_none": 0.7183,
+    "f1_minor": 0.2049,
+    "f1_major": 0.0181,
+    "f1_destroyed": 0.0994
+  },
+  {
+    "epoch": 4,
+    "train_loss": 0.8469,
+    "loc_f1": 0.7982,
+    "dmg_macro_f1": 0.2767,
+    "xview2_score": 0.4332,
+    "f1_none": 0.7334,
+    "f1_minor": 0.1757,
+    "f1_major": 0.0102,
+    "f1_destroyed": 0.1876
+  },
+  {
+    "epoch": 5,
+    "train_loss": 0.7813,
+    "loc_f1": 0.7986,
+    "dmg_macro_f1": 0.3202,
+    "xview2_score": 0.4637,
+    "f1_none": 0.7323,
+    "f1_minor": 0.2491,
+    "f1_major": 0.0066,
+    "f1_destroyed": 0.2927
+  }
+]

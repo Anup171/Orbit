@@ -18,12 +18,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import argparse
+import json
 import yaml
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 from src.data.dataset import xBDDataset, DamageAwareSampler
 from src.models.siamese_resnet import SiameseResNet34
@@ -165,6 +169,8 @@ def main():
     loc_loss = LocalizationLoss()
     dmg_loss = DamageLoss()
 
+    os.makedirs("reports", exist_ok=True)
+    history = []
     best_score = 0.0
     for epoch in range(1, args.epochs + 1):
         loss = train_one_epoch(model, train_loader, optimizer, scaler, loc_loss, dmg_loss, device)
@@ -178,6 +184,20 @@ def main():
             f"[None: {metrics['f1_none']:.2f}, Minor: {metrics['f1_minor']:.2f}, "
             f"Major: {metrics['f1_major']:.2f}, Dest: {metrics['f1_destroyed']:.2f}]"
         )
+
+        history.append({
+            "epoch": epoch,
+            "train_loss": round(float(loss), 4),
+            "loc_f1": round(float(metrics["loc_f1"]), 4),
+            "dmg_macro_f1": round(float(metrics["dmg_macro_f1"]), 4),
+            "xview2_score": round(float(metrics["xview2_score"]), 4),
+            "f1_none": round(float(metrics["f1_none"]), 4),
+            "f1_minor": round(float(metrics["f1_minor"]), 4),
+            "f1_major": round(float(metrics["f1_major"]), 4),
+            "f1_destroyed": round(float(metrics["f1_destroyed"]), 4),
+        })
+        with open("reports/training_history.json", "w", encoding="utf-8") as hf:
+            json.dump(history, hf, indent=2)
 
         if metrics["xview2_score"] > best_score:
             best_score = metrics["xview2_score"]
@@ -193,6 +213,40 @@ def main():
                 ckpt_path,
             )
             print(f"  -> New best xView2 score ({best_score:.4f}) saved to {ckpt_path}")
+
+    # Plot and save training curves
+    epochs_x = [h["epoch"] for h in history]
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4.2))
+
+    axes[0].plot(epochs_x, [h["train_loss"] for h in history], marker="o", color="#0C7FDA", linewidth=2)
+    axes[0].set_title("Training Loss")
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss (Loc + Damage)")
+    axes[0].grid(True, linestyle="--", alpha=0.4)
+
+    axes[1].plot(epochs_x, [h["loc_f1"] for h in history], marker="o", label="Loc F1", color="#27ae60")
+    axes[1].plot(epochs_x, [h["dmg_macro_f1"] for h in history], marker="s", label="Dmg Macro-F1", color="#e67e22")
+    axes[1].plot(epochs_x, [h["xview2_score"] for h in history], marker="^", label="xView2 Score", color="#0C7FDA", linewidth=2)
+    axes[1].set_title("Validation Metrics")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("F1 / Score")
+    axes[1].legend()
+    axes[1].grid(True, linestyle="--", alpha=0.4)
+
+    axes[2].plot(epochs_x, [h["f1_none"] for h in history], marker="o", label="No Damage", color="#27ae60")
+    axes[2].plot(epochs_x, [h["f1_minor"] for h in history], marker="s", label="Minor", color="#f1c40f")
+    axes[2].plot(epochs_x, [h["f1_major"] for h in history], marker="^", label="Major", color="#e67e22")
+    axes[2].plot(epochs_x, [h["f1_destroyed"] for h in history], marker="d", label="Destroyed", color="#e74c3c")
+    axes[2].set_title("Per-Class Damage F1 (Val)")
+    axes[2].set_xlabel("Epoch")
+    axes[2].set_ylabel("F1 Score")
+    axes[2].legend()
+    axes[2].grid(True, linestyle="--", alpha=0.4)
+
+    plt.tight_layout()
+    plt.savefig("reports/training_curves.png", dpi=150)
+    plt.close(fig)
+    print("Saved training curves to reports/training_curves.png")
 
 
 if __name__ == "__main__":
