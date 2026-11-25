@@ -1,43 +1,70 @@
 /**
  * App.jsx
  * -------
- * Main Disaster Damage Assessment Platform application.
- * Integrates:
- *   - Global Disaster Event Selector: All 10 xBD disaster events + 2,700+ clickable global zones
- *   - SwipeMap: Pre/post satellite comparison slider with real Maxar satellite imagery & highlighted pre-disaster area
- *   - DamageLayer: Color-coded building footprints, global zone markers, and emergency rescue routes
- *   - RoutePanel: Prioritised triage queue, filters, search, and emergency route dispatch
+ * Clean, flat, restrained Light/Dark Admin Workspace integrating:
+ *   - AdminSidebar (300px expanded / 100px collapsed / mobile drawer, Posts selected initially)
+ *   - TopHeader (white header bar with message notification icon & circular avatar)
+ *   - DashboardView (29px Epilogue heading, #0C7FDA bar chart, list cards with circular avatars)
+ *   - Live Satellite Assessment Workspace (SwipeMap + DamageLayer + RoutePanel)
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import AdminSidebar from './components/AdminSidebar.jsx';
+import TopHeader from './components/TopHeader.jsx';
+import DashboardView from './components/DashboardView.jsx';
 import SwipeMap from './components/SwipeMap.jsx';
 import DamageLayer from './components/DamageLayer.jsx';
-import { getFeatureCentroid } from './utils/geo.js';
 import RoutePanel from './components/RoutePanel.jsx';
 
 const API_BASE = '/api/v1';
+const RESCUE_API = '/api/rescue';
 
 export default function App() {
+  // Navigation & Theme Shell State (Posts selected in initial reference state)
+  const [activeNav, setActiveNav] = useState('posts');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Disaster Assessment & Routing State
   const [disasters, setDisasters] = useState([]);
   const [globalZones, setGlobalZones] = useState(null);
   const [selectedDisasterId, setSelectedDisasterId] = useState('');
   const [activeDisasterInfo, setActiveDisasterInfo] = useState(null);
+
   const [geojsonData, setGeojsonData] = useState({ type: 'FeatureCollection', features: [] });
   const [routeData, setRouteData] = useState({ type: 'FeatureCollection', features: [] });
+  const [routePlan, setRoutePlan] = useState(null);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
-  const [activeRouteInfo, setActiveRouteInfo] = useState(null);
+
   const [mapView, setMapView] = useState({ center: [-122.716, 38.473], zoom: 16.5 });
-  const [stagingCoords, setStagingCoords] = useState({
+  const [rescueBase, setRescueBase] = useState({
     lat: 38.475,
     lon: -122.720,
-    name: 'Incident Command Post',
+    label: 'Rescue Command Base',
   });
+  const [isSelectingBase, setIsSelectingBase] = useState(false);
+
+  const [showDamageLayers, setShowDamageLayers] = useState(true);
+  const [showRescueRoutes, setShowRescueRoutes] = useState(true);
+  const [damageFilter, setDamageFilter] = useState('ALL');
+  const [minPriority, setMinPriority] = useState(0);
+  const [onlyManualReview, setOnlyManualReview] = useState(false);
+  const [numTeams, setNumTeams] = useState(1);
+  const [maxStops, setMaxStops] = useState(10);
+
   const [imageOverlay, setImageOverlay] = useState(null);
-  const [jobId, setJobId] = useState(null);
   const [jobStatus, setJobStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+  const [routingMessage, setRoutingMessage] = useState('');
+  const [refreshCache, setRefreshCache] = useState(false);
 
-  // Fetch curated catalog (all 10 events) and global zones GeoJSON on mount
+  // Sync data-theme attribute for CSS variables & MapLibre popups
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
   useEffect(() => {
     fetchDisasters();
     fetchGlobalZones();
@@ -46,10 +73,7 @@ export default function App() {
   const fetchGlobalZones = async () => {
     try {
       const res = await fetch(`${API_BASE}/disasters/zones`);
-      if (res.ok) {
-        const zones = await res.json();
-        setGlobalZones(zones);
-      }
+      if (res.ok) setGlobalZones(await res.json());
     } catch (err) {
       console.warn('Could not load global zones:', err);
     }
@@ -63,17 +87,13 @@ export default function App() {
         const catalog = await res.json();
         setDisasters(catalog);
         if (catalog.length > 0) {
-          // Prefer a high-destruction scene on initial load
           const defaultScene =
             catalog.find((d) => d.id.startsWith('santa-rosa-wildfire')) || catalog[0];
           selectDisaster(defaultScene);
         }
-      } else {
-        loadFallbackData();
       }
     } catch (err) {
       console.warn('Error fetching disasters catalog:', err);
-      loadFallbackData();
     } finally {
       setIsLoading(false);
     }
@@ -86,11 +106,13 @@ export default function App() {
     setActiveDisasterInfo(disaster);
     setMapView({ center: disaster.center, zoom: 16.5 });
 
-    setStagingCoords({
+    const defaultBase = {
       lat: disaster.center[1] + 0.002,
       lon: disaster.center[0] - 0.002,
-      name: `${disaster.location} Command Base`,
-    });
+      label: `${disaster.location} Command Base`,
+    };
+    setRescueBase(defaultBase);
+    setIsSelectingBase(false);
 
     setImageOverlay({
       pre_image_url: disaster.pre_image_url,
@@ -99,7 +121,8 @@ export default function App() {
     });
 
     setRouteData({ type: 'FeatureCollection', features: [] });
-    setActiveRouteInfo(null);
+    setRoutePlan(null);
+    setRoutingMessage('');
 
     try {
       const res = await fetch(disaster.geojson_url);
@@ -119,7 +142,6 @@ export default function App() {
     }
   }, []);
 
-  // Load any of the 2,700+ global zones when clicked on the world map
   const handleSelectZone = useCallback(
     async (sceneId) => {
       const existing = disasters.find((d) => d.id === sceneId);
@@ -142,372 +164,460 @@ export default function App() {
     [disasters, selectDisaster]
   );
 
-  const handleGlobalOverview = () => {
-    setMapView({ center: [-40, 22], zoom: 2.3 });
-    setSelectedBuilding(null);
-  };
-
-  const handleDisasterChange = (e) => {
-    const targetId = e.target.value;
-    const targetDisaster = disasters.find((d) => d.id === targetId);
-    if (targetDisaster) {
-      selectDisaster(targetDisaster);
-    }
-  };
-
-  const loadFallbackData = () => {
-    const fallback = {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: {
-            building_id: 'bldg_0001',
-            damage_class: 'destroyed',
-            damage_score: 0.98,
-            priority_rank: 1,
-            priority_score: 0.95,
-            confidence: 0.95,
-            needs_manual_review: false,
-            area_sq_m: 420.5,
-          },
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [-122.7165, 38.4735],
-              [-122.7155, 38.4735],
-              [-122.7155, 38.4725],
-              [-122.7165, 38.4725],
-              [-122.7165, 38.4735],
-            ]],
-          },
-        },
-      ],
-    };
-    setGeojsonData(fallback);
-    setSelectedBuilding(fallback.features[0].properties);
-  };
-
-  // Dispatch rescue route from staging point to a target building
-  const handleRequestRoute = useCallback(async (building) => {
-    const feature = (geojsonData.features || []).find(
-      (f) => f.properties?.building_id === building.building_id
-    );
-    if (!feature) return;
-
-    const targetCoords = getFeatureCentroid(feature);
-    if (!targetCoords) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/routes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          origin_lat: stagingCoords.lat,
-          origin_lon: stagingCoords.lon,
-          destinations: [
-            {
-              lat: targetCoords[1],
-              lon: targetCoords[0],
-              id: building.building_id,
-            },
-          ],
-          top_k: 1,
-          use_osm: false,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.routes && data.routes.length > 0) {
-          const firstRoute = data.routes[0];
-          setRouteData({
-            type: 'FeatureCollection',
-            features: [firstRoute],
-          });
-          setActiveRouteInfo({
-            targetId: building.building_id,
-            distance_km: firstRoute.properties?.distance_km || 0.8,
-            travel_time_minutes: firstRoute.properties?.travel_time_minutes || 2.4,
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Route calculation error:', err);
-    }
-  }, [geojsonData, stagingCoords]);
-
-  // Handle uploading custom pre/post satellite image pair
-  const handleFileUpload = useCallback(async (e) => {
-    const files = e.target.files;
-    if (!files || files.length < 2) {
-      alert('Please select both a pre-disaster and post-disaster satellite image.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('pre_image', files[0]);
-    formData.append('post_image', files[1]);
-
-    setIsLoading(true);
-    setJobStatus('uploading');
-
-    try {
-      const res = await fetch(`${API_BASE}/predict?staging_lat=${stagingCoords.lat}&staging_lon=${stagingCoords.lon}`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      setJobId(data.job_id);
-      setJobStatus('queued');
-      pollAssessmentJob(data.job_id);
-    } catch (err) {
-      console.error('Upload failed:', err);
-      setJobStatus('error');
-      setIsLoading(false);
-    }
-  }, [stagingCoords]);
-
-  const pollAssessmentJob = useCallback((id) => {
-    const pollInterval = setInterval(async () => {
+  // Non-blocking OSMnx Road-Network Rescue Routing
+  const runRescueRouting = useCallback(
+    async (baseCoords, teamsCount, stopsCount) => {
+      if (!selectedDisasterId) return;
+      setIsRouting(true);
+      setRoutingMessage('Downloading road network...');
       try {
-        const res = await fetch(`${API_BASE}/jobs/${id}`);
-        const data = await res.json();
-        setJobStatus(data.status);
+        const res = await fetch(`${RESCUE_API}/generate-route-async`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scene_id: selectedDisasterId,
+            base_lat: baseCoords.lat,
+            base_lon: baseCoords.lon,
+            max_stops: stopsCount,
+            num_teams: teamsCount,
+            damage_filter:
+              damageFilter !== 'ALL'
+                ? [damageFilter]
+                : ['destroyed', 'major-damage', 'minor-damage'],
+            confidence_threshold: 0.65,
+            refresh_cache: refreshCache,
+          }),
+        });
+        if (!res.ok) throw new Error('Failed to start routing job');
+        const job = await res.json();
+        setRoutingMessage(job.progress_message || 'Downloading road network...');
 
-        if (data.status === 'completed') {
-          clearInterval(pollInterval);
-          setIsLoading(false);
-          const geoRes = await fetch(`${API_BASE}/jobs/${id}/geojson`);
-          const geoData = await geoRes.json();
-          setGeojsonData(geoData);
-        } else if (data.status === 'failed') {
-          clearInterval(pollInterval);
-          setIsLoading(false);
-          alert(`Assessment failed: ${data.error_message || 'Unknown error'}`);
-        }
+        const pollJob = async () => {
+          try {
+            const jr = await fetch(`${RESCUE_API}/job/${job.job_id}`);
+            if (!jr.ok) throw new Error('Polling failed');
+            const jdata = await jr.json();
+            if (jdata.progress_message) setRoutingMessage(jdata.progress_message);
+
+            if (jdata.status === 'completed' && jdata.result) {
+              const data = jdata.result;
+              setRoutePlan(data);
+              if (data.buildings_geojson) setGeojsonData(data.buildings_geojson);
+              if (data.route_geojson) setRouteData(data.route_geojson);
+              setShowRescueRoutes(true);
+              setRefreshCache(false);
+              setIsRouting(false);
+            } else if (jdata.status === 'failed') {
+              setRoutePlan({
+                status: 'road_network_unavailable',
+                error: jdata.progress_message || 'Unable to retrieve road network. Please retry later.',
+              });
+              setIsRouting(false);
+            } else {
+              setTimeout(pollJob, 800);
+            }
+          } catch {
+            setRoutePlan({
+              status: 'road_network_unavailable',
+              error: 'Unable to retrieve road network. Please retry later.',
+            });
+            setRoutingMessage('Unable to retrieve road network. Please retry later.');
+            setIsRouting(false);
+          }
+        };
+        setTimeout(pollJob, 400);
+      } catch {
+        setRoutePlan({
+          status: 'road_network_unavailable',
+          error: 'Unable to retrieve road network. Please retry later.',
+        });
+        setRoutingMessage('Unable to retrieve road network. Please retry later.');
+        setIsRouting(false);
+      }
+    },
+    [selectedDisasterId, damageFilter, refreshCache]
+  );
+
+  const handleSelectBaseOnMap = useCallback(
+    async (coords) => {
+      const updated = { ...coords, label: 'User Selected Rescue Base' };
+      setRescueBase(updated);
+      setIsSelectingBase(false);
+
+      try {
+        await fetch(`${RESCUE_API}/base-location`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scene_id: selectedDisasterId,
+            lat: updated.lat,
+            lon: updated.lon,
+            label: updated.label,
+          }),
+        });
       } catch (err) {
-        clearInterval(pollInterval);
+        console.warn('Could not persist base location:', err);
+      }
+
+      if (routePlan) {
+        runRescueRouting(updated, numTeams, maxStops);
+      }
+    },
+    [selectedDisasterId, routePlan, numTeams, maxStops, runRescueRouting]
+  );
+
+  const handleNavChange = (navId) => {
+    setActiveNav(navId);
+    if (navId === 'comments') {
+      setOnlyManualReview(true);
+    } else if (navId === 'posts') {
+      setOnlyManualReview(false);
+    } else if (navId === 'pages') {
+      setMapView({ center: [-40, 22], zoom: 2.3 });
+    }
+  };
+
+  const handleFileUpload = useCallback(
+    async (e) => {
+      const files = e.target.files;
+      if (!files || files.length < 2) {
+        alert('Please select both a pre-disaster and post-disaster satellite image.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('pre_image', files[0]);
+      formData.append('post_image', files[1]);
+      setIsLoading(true);
+      setJobStatus('uploading');
+      try {
+        const res = await fetch(
+          `${API_BASE}/predict?staging_lat=${rescueBase.lat}&staging_lon=${rescueBase.lon}`,
+          { method: 'POST', body: formData }
+        );
+        const data = await res.json();
+        setJobStatus('queued');
+        const pollInterval = setInterval(async () => {
+          try {
+            const st = await (await fetch(`${API_BASE}/jobs/${data.job_id}`)).json();
+            setJobStatus(st.status);
+            if (st.status === 'completed') {
+              clearInterval(pollInterval);
+              setIsLoading(false);
+              const geo = await (await fetch(`${API_BASE}/jobs/${data.job_id}/geojson`)).json();
+              setGeojsonData(geo);
+              setActiveNav('posts');
+            } else if (st.status === 'failed') {
+              clearInterval(pollInterval);
+              setIsLoading(false);
+            }
+          } catch {
+            clearInterval(pollInterval);
+            setIsLoading(false);
+          }
+        }, 2500);
+      } catch (err) {
+        console.error('Upload failed:', err);
+        setJobStatus('error');
         setIsLoading(false);
       }
-    }, 2500);
-  }, []);
+    },
+    [rescueBase]
+  );
 
-  const totalZonesCount = globalZones?.features?.length || disasters.length;
-  // Deduplicate one representative per event for quick-jump pills
-  const uniqueEvents = [];
-  const seenEvents = new Set();
-  for (const d of disasters) {
-    if (!seenEvents.has(d.event)) {
-      seenEvents.add(d.event);
-      uniqueEvents.push(d);
-    }
-  }
+  const manualReviewCount = (geojsonData.features || []).filter(
+    (f) => f?.properties?.needs_manual_review === true || f?.properties?.needs_manual_review === 'true'
+  ).length;
+
+  const workspaceBg = darkMode ? '#071626' : '#EFF2F4';
+  const surfaceBg = darkMode ? '#0D2238' : '#FFFFFF';
+  const borderCol = darkMode ? '#19354F' : '#E1E7EC';
+  const headingCol = darkMode ? '#EFF2F4' : '#1E252B';
+  const mutedCol = darkMode ? '#9CB2C5' : '#5D7285';
+
+  const navTitleMap = {
+    dashboard: 'Dashboard',
+    posts: 'Disaster Scenes & Assessment',
+    media: 'Satellite Imagery & Upload',
+    pages: 'Global Disaster Zones',
+    comments: 'Manual Review Queue',
+    appearance: 'Appearance',
+    plugins: 'Plugins',
+    users: 'Response Teams',
+    settings: 'Settings',
+    tools: 'OSMnx & Cache Tools',
+  };
+
+  const showMapWorkspace = ['posts', 'media', 'pages', 'comments'].includes(activeNav);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      {/* Interactive Map Area */}
-      <div style={{ flex: 1, position: 'relative', height: '100%', overflow: 'hidden' }}>
-        <SwipeMap
-          center={mapView.center}
-          zoom={mapView.zoom}
-          imageOverlay={imageOverlay}
-          geojsonData={geojsonData}
-        >
-          <DamageLayer
-            geojsonData={geojsonData}
-            routeData={routeData}
-            globalZones={globalZones}
-            selectedBuilding={selectedBuilding}
-            onSelectBuilding={setSelectedBuilding}
-            onSelectZone={handleSelectZone}
-          />
-        </SwipeMap>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: workspaceBg }}>
+      {/* Left Vertical Admin Sidebar */}
+      <AdminSidebar
+        activeNav={activeNav}
+        onSelectNav={handleNavChange}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(!darkMode)}
+        commentBadgeCount={manualReviewCount}
+        mobileOpen={mobileDrawerOpen}
+        onCloseMobile={() => setMobileDrawerOpen(false)}
+        onLogout={() => selectDisaster(disasters[0])}
+      />
 
-        {/* Top Floating Control Bar */}
-        <div style={floatingControlBarStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 20 }}>🛰️</span>
-              <div>
-                <div style={{ fontWeight: 'bold', fontSize: 13, color: '#fff' }}>
-                  xView2 Satellite Disaster Assessment
-                </div>
-                <div style={{ fontSize: 11, color: '#00d2ff' }}>
-                  Siamese ResNet-34 · True Maxar Pre/Post Overlay
-                </div>
-              </div>
-            </div>
-            {isLoading && (
-              <span style={{ fontSize: 11, color: '#f1c40f', background: 'rgba(241,196,15,0.15)', padding: '2px 8px', borderRadius: 10 }}>
-                Loading...
-              </span>
-            )}
-          </div>
+      {/* Right Main Column: Top Header + Workspace */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
+        <TopHeader
+          darkMode={darkMode}
+          onOpenMobileMenu={() => setMobileDrawerOpen(true)}
+          onSelectMessages={() => handleNavChange('comments')}
+          unreadCount={manualReviewCount}
+        />
 
-          {/* Global Disaster Selector */}
-          <div style={{ marginTop: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <label style={{ fontSize: 11, color: '#aaa', fontWeight: 'bold' }}>
-                🌍 ALL DISASTERS ({uniqueEvents.length} EVENTS · {totalZonesCount.toLocaleString()} ZONES):
-              </label>
-              <button
-                onClick={handleGlobalOverview}
+        <main style={{ flex: 1, minHeight: 0, overflow: 'hidden', backgroundColor: workspaceBg }}>
+          {activeNav === 'dashboard' ? (
+            <DashboardView
+              darkMode={darkMode}
+              buildings={geojsonData.features}
+              disasters={disasters}
+              activeDisasterInfo={activeDisasterInfo}
+              onSelectDisaster={selectDisaster}
+              onGoToMap={() => setActiveNav('posts')}
+            />
+          ) : showMapWorkspace ? (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '18px 22px', gap: 14 }}>
+              {/* Clean Section Header + Scene Selector Card */}
+              <div
                 style={{
-                  background: '#1b3a4b',
-                  border: '1px solid #00d2ff',
-                  color: '#00d2ff',
-                  borderRadius: 4,
-                  fontSize: 10,
-                  fontWeight: 'bold',
-                  padding: '2px 7px',
-                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 12,
                 }}
               >
-                🌐 Global Map
-              </button>
-            </div>
-            <select
-              value={selectedDisasterId}
-              onChange={handleDisasterChange}
-              style={disasterSelectStyle}
-            >
-              {!disasters.some((d) => d.id === selectedDisasterId) && activeDisasterInfo && (
-                <option value={activeDisasterInfo.id}>
-                  {activeDisasterInfo.name} ({activeDisasterInfo.total_buildings} bldgs — {activeDisasterInfo.damage_breakdown?.destroyed || 0} destroyed)
-                </option>
-              )}
-              {disasters.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.total_buildings} bldgs — {d.damage_breakdown?.destroyed || 0} destroyed)
-                </option>
-              ))}
-            </select>
-          </div>
+                <h1
+                  className="font-heading"
+                  style={{ margin: 0, fontSize: 29, fontWeight: 600, color: headingCol }}
+                >
+                  {navTitleMap[activeNav] || 'Posts'}
+                </h1>
 
-          {/* Current Event Summary Pill */}
-          {activeDisasterInfo && (
-            <div style={disasterDetailsPillStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                <span style={{ color: '#bbb' }}>📍 {activeDisasterInfo.location}</span>
-                <span style={{ color: '#e74c3c', fontWeight: 'bold' }}>
-                  🔥 {activeDisasterInfo.damage_breakdown?.destroyed || 0} Destroyed
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <select
+                    aria-label="Select disaster scene"
+                    value={selectedDisasterId}
+                    onChange={(e) => {
+                      const d = disasters.find((x) => x.id === e.target.value);
+                      if (d) selectDisaster(d);
+                    }}
+                    style={{
+                      backgroundColor: surfaceBg,
+                      color: headingCol,
+                      border: `1px solid ${borderCol}`,
+                      borderRadius: 6,
+                      padding: '7px 12px',
+                      fontSize: 13,
+                      fontFamily: 'Poppins, sans-serif',
+                      maxWidth: 340,
+                    }}
+                  >
+                    {!disasters.some((d) => d.id === selectedDisasterId) && activeDisasterInfo && (
+                      <option value={activeDisasterInfo.id}>{activeDisasterInfo.name}</option>
+                    )}
+                    {disasters.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} ({d.total_buildings} bldgs)
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => setMapView({ center: [-40, 22], zoom: 2.3 })}
+                    style={{
+                      backgroundColor: surfaceBg,
+                      color: '#0C7FDA',
+                      border: `1px solid ${borderCol}`,
+                      borderRadius: 6,
+                      padding: '7px 12px',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Global Zones ({globalZones?.features?.length || disasters.length})
+                  </button>
+
+                  <label
+                    style={{
+                      backgroundColor: '#0C7FDA',
+                      color: '#FFFFFF',
+                      borderRadius: 6,
+                      padding: '7px 12px',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Upload Pair
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+
+                  {(isLoading || jobStatus) && (
+                    <span style={{ fontSize: 12, color: mutedCol }}>
+                      {isLoading ? 'Loading...' : `Job: ${jobStatus}`}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 3 }}>
-                {activeDisasterInfo.description}
+
+              {/* Map Card + Rescue Triage Panel */}
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 16 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    backgroundColor: surfaceBg,
+                    border: `1px solid ${borderCol}`,
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <SwipeMap
+                    center={mapView.center}
+                    zoom={mapView.zoom}
+                    imageOverlay={imageOverlay}
+                    geojsonData={geojsonData}
+                  >
+                    <DamageLayer
+                      geojsonData={geojsonData}
+                      routeData={routeData}
+                      globalZones={globalZones}
+                      rescueBase={rescueBase}
+                      isSelectingBase={isSelectingBase}
+                      onSelectBase={handleSelectBaseOnMap}
+                      showDamageLayers={showDamageLayers}
+                      showRescueRoutes={showRescueRoutes}
+                      damageFilter={damageFilter}
+                      minPriority={minPriority}
+                      onlyManualReview={onlyManualReview}
+                      selectedBuilding={selectedBuilding}
+                      onSelectBuilding={setSelectedBuilding}
+                      onSelectZone={handleSelectZone}
+                    />
+                  </SwipeMap>
+                </div>
+
+                <RoutePanel
+                  darkMode={darkMode}
+                  buildings={geojsonData.features}
+                  selectedBuilding={selectedBuilding}
+                  onSelectBuilding={setSelectedBuilding}
+                  rescueBase={rescueBase}
+                  isSelectingBase={isSelectingBase}
+                  onToggleSelectBase={() => setIsSelectingBase(!isSelectingBase)}
+                  onGenerateRoute={() => runRescueRouting(rescueBase, numTeams, maxStops)}
+                  isRouting={isRouting}
+                  routingMessage={routingMessage}
+                  refreshCache={refreshCache}
+                  onToggleRefreshCache={() => setRefreshCache(!refreshCache)}
+                  routePlan={routePlan}
+                  showDamageLayers={showDamageLayers}
+                  onToggleDamageLayers={() => setShowDamageLayers(!showDamageLayers)}
+                  showRescueRoutes={showRescueRoutes}
+                  onToggleRescueRoutes={() => setShowRescueRoutes(!showRescueRoutes)}
+                  damageFilter={damageFilter}
+                  onChangeDamageFilter={setDamageFilter}
+                  minPriority={minPriority}
+                  onChangeMinPriority={setMinPriority}
+                  onlyManualReview={onlyManualReview}
+                  onToggleManualReview={() => setOnlyManualReview(!onlyManualReview)}
+                  numTeams={numTeams}
+                  onChangeNumTeams={setNumTeams}
+                  maxStops={maxStops}
+                  onChangeMaxStops={setMaxStops}
+                />
+              </div>
+            </div>
+          ) : (
+            /* Restrained Flat Cards for Tools / Settings / Appearance / Plugins / Users */
+            <div style={{ padding: '24px 28px', overflowY: 'auto', height: '100%' }}>
+              <h1
+                className="font-heading"
+                style={{ margin: '0 0 20px 0', fontSize: 29, fontWeight: 600, color: headingCol }}
+              >
+                {navTitleMap[activeNav]}
+              </h1>
+              <div
+                style={{
+                  backgroundColor: surfaceBg,
+                  border: `1px solid ${borderCol}`,
+                  borderRadius: 6,
+                  padding: 20,
+                  maxWidth: 640,
+                }}
+              >
+                <div style={{ fontSize: 15, fontWeight: 600, color: headingCol, marginBottom: 8 }}>
+                  {activeNav === 'tools' ? 'OSMnx Road Network Cache' : `${navTitleMap[activeNav]} Configuration`}
+                </div>
+                <p style={{ fontSize: 13, color: mutedCol, margin: '0 0 16px 0', lineHeight: 1.6 }}>
+                  {activeNav === 'tools'
+                    ? 'Road networks are cached as GraphML files in data/osm_cache/ with 180s configurable Overpass timeouts and multi-endpoint fallback.'
+                    : `Clean administrative view for ${navTitleMap[activeNav]}. Return to Posts or Dashboard to inspect live satellite damage assessments and rescue routes.`}
+                </p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {activeNav === 'tools' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const r = await fetch(`${RESCUE_API}/cache/clear`, { method: 'POST' });
+                        const d = await r.json();
+                        alert(`Cleared ${d.files_removed} cached OSM files.`);
+                      }}
+                      style={{
+                        backgroundColor: '#5D7285',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '8px 14px',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear OSM Cache
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setActiveNav('posts')}
+                    style={{
+                      backgroundColor: '#0C7FDA',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '8px 14px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Return to Satellite Map
+                  </button>
+                </div>
               </div>
             </div>
           )}
-
-          {/* Quick Jump Pills for ALL 10 Disaster Events */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-            {uniqueEvents.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => selectDisaster(d)}
-                style={getQuickDisasterBtnStyle(activeDisasterInfo?.event === d.event)}
-              >
-                {d.icon} {d.event.replace('-', ' ').toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          {/* Action Tools */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 8, borderTop: '1px solid #2a2a2a' }}>
-            <label style={{ ...actionBtnStyle, cursor: 'pointer', background: '#005b8e', borderColor: '#0088cc' }}>
-              📁 Upload Custom Pair
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-              />
-            </label>
-
-            {jobStatus && (
-              <span style={{ fontSize: 11, background: '#252525', padding: '4px 8px', borderRadius: 4, color: '#00d2ff' }}>
-                Job: {jobStatus}
-              </span>
-            )}
-          </div>
-        </div>
+        </main>
       </div>
-
-      {/* Side Triage & Routing Panel */}
-      <RoutePanel
-        buildings={geojsonData.features}
-        selectedBuilding={selectedBuilding}
-        onSelectBuilding={setSelectedBuilding}
-        onRequestRoute={handleRequestRoute}
-        activeRouteInfo={activeRouteInfo}
-      />
     </div>
   );
 }
-
-// ── Styles ──────────────────────────────────────────────────
-
-const floatingControlBarStyle = {
-  position: 'absolute',
-  top: 14,
-  left: 14,
-  zIndex: 30,
-  background: 'rgba(18, 18, 18, 0.94)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid #333',
-  borderRadius: 8,
-  padding: '12px 16px',
-  boxShadow: '0 6px 24px rgba(0,0,0,0.7)',
-  maxWidth: 440,
-  width: 'calc(100% - 28px)',
-};
-
-const disasterSelectStyle = {
-  width: '100%',
-  padding: '8px 10px',
-  borderRadius: 6,
-  border: '1px solid #444',
-  background: '#222',
-  color: '#fff',
-  fontSize: 12,
-  fontWeight: '600',
-  outline: 'none',
-  cursor: 'pointer',
-};
-
-const disasterDetailsPillStyle = {
-  marginTop: 8,
-  padding: '8px 10px',
-  background: 'rgba(25, 25, 25, 0.8)',
-  borderRadius: 6,
-  border: '1px solid #333',
-};
-
-function getQuickDisasterBtnStyle(active) {
-  return {
-    padding: '3px 7px',
-    borderRadius: 12,
-    border: `1px solid ${active ? '#00d2ff' : '#333'}`,
-    background: active ? '#005b8e' : '#222',
-    color: active ? '#fff' : '#aaa',
-    fontSize: 9.5,
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    transition: 'all 0.15s',
-  };
-}
-
-const actionBtnStyle = {
-  padding: '6px 12px',
-  borderRadius: 4,
-  border: '1px solid #444',
-  background: '#2a2a2a',
-  color: '#eee',
-  fontSize: 11,
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  transition: 'all 0.15s',
-};

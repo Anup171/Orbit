@@ -391,12 +391,11 @@ export default function SwipeMap({
           top: 0,
           left: `${swipePosition}%`,
           transform: 'translateX(-50%)',
-          width: 6,
+          width: 3,
           height: '100%',
-          background: 'linear-gradient(to bottom, #2ecc71, #ffffff, #e74c3c)',
+          backgroundColor: '#0C7FDA',
           cursor: 'col-resize',
           zIndex: 10,
-          boxShadow: '0 0 16px rgba(0, 210, 255, 0.9), 0 0 4px rgba(0,0,0,0.8)',
           pointerEvents: 'auto',
         }}
       >
@@ -406,18 +405,18 @@ export default function SwipeMap({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 42,
-            height: 42,
+            width: 34,
+            height: 34,
             borderRadius: '50%',
-            background: '#121212',
-            border: '2px solid #00d2ff',
+            backgroundColor: '#FFFFFF',
+            border: '2px solid #0C7FDA',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 16,
-            color: '#00d2ff',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 14px rgba(0,0,0,0.8)',
+            fontSize: 14,
+            color: '#0C7FDA',
+            fontWeight: 600,
+            boxShadow: '0 1px 4px rgba(30, 37, 43, 0.2)',
             cursor: 'col-resize',
             userSelect: 'none',
           }}
@@ -430,89 +429,85 @@ export default function SwipeMap({
       <div
         style={{
           position: 'absolute',
-          top: 16,
+          top: 14,
           left: Math.max(16, (swipePosition * 0.5)) + '%',
           transform: 'translateX(-50%)',
           zIndex: 5,
-          background: 'rgba(10, 35, 22, 0.92)',
-          backdropFilter: 'blur(6px)',
-          border: '1.5px solid #2ecc71',
-          borderRadius: 20,
-          padding: '5px 14px',
-          color: '#2ecc71',
-          fontSize: 12,
-          fontWeight: '700',
-          letterSpacing: 0.5,
-          boxShadow: '0 2px 12px rgba(46, 204, 113, 0.35)',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E1E7EC',
+          borderRadius: 4,
+          padding: '4px 10px',
+          color: '#1E252B',
+          fontSize: 11,
+          fontWeight: 600,
           pointerEvents: 'none',
           opacity: swipePosition > 18 ? 1 : 0,
           transition: 'opacity 0.2s',
           whiteSpace: 'nowrap',
         }}
       >
-        🛰️ PRE-DISASTER BASELINE
+        Pre-Disaster
       </div>
 
       <div
         style={{
           position: 'absolute',
-          top: 16,
+          top: 14,
           left: Math.min(84, swipePosition + ((100 - swipePosition) * 0.5)) + '%',
           transform: 'translateX(-50%)',
           zIndex: 5,
-          background: 'rgba(35, 12, 12, 0.92)',
-          backdropFilter: 'blur(6px)',
-          border: '1.5px solid #e74c3c',
-          borderRadius: 20,
-          padding: '5px 14px',
-          color: '#ff6b6b',
-          fontSize: 12,
-          fontWeight: '700',
-          letterSpacing: 0.5,
-          boxShadow: '0 2px 12px rgba(231, 76, 60, 0.35)',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E1E7EC',
+          borderRadius: 4,
+          padding: '4px 10px',
+          color: '#1E252B',
+          fontSize: 11,
+          fontWeight: 600,
           pointerEvents: 'none',
           opacity: (100 - swipePosition) > 18 ? 1 : 0,
           transition: 'opacity 0.2s',
           whiteSpace: 'nowrap',
         }}
       >
-        🚨 POST-DISASTER DESTRUCTION
+        Post-Disaster
       </div>
 
       {/* ── 5. Quick Percentage Jump Controls (Bottom Center) ────────── */}
       <div
         style={{
           position: 'absolute',
-          bottom: 24,
+          bottom: 16,
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 10,
-          background: 'rgba(18, 18, 18, 0.92)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid #333',
-          borderRadius: 24,
-          padding: '4px 12px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E1E7EC',
+          borderRadius: 6,
+          padding: '4px 8px',
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.6)',
+          gap: 6,
+          boxShadow: '0 1px 4px rgba(30, 37, 43, 0.1)',
           fontSize: 11,
         }}
       >
-        <span style={{ color: '#888', fontWeight: 'bold' }}>SPLIT:</span>
+        <span style={{ color: '#5D7285', fontWeight: 600, padding: '0 4px' }}>Split:</span>
         <button
+          type="button"
           onClick={() => setSwipePosition(100)}
           style={getQuickBtnStyle(swipePosition === 100)}
         >
           100% Pre
         </button>
         <button
+          type="button"
           onClick={() => setSwipePosition(50)}
           style={getQuickBtnStyle(swipePosition === 50)}
         >
-          50 / 50 Split
+          50 / 50
         </button>
         <button
+          type="button"
           onClick={() => setSwipePosition(0)}
           style={getQuickBtnStyle(swipePosition === 0)}
         >
@@ -534,12 +529,12 @@ export default function SwipeMap({
 function getQuickBtnStyle(active) {
   return {
     padding: '4px 10px',
-    borderRadius: 14,
+    borderRadius: 4,
     border: 'none',
-    background: active ? '#00d2ff' : 'transparent',
-    color: active ? '#000' : '#bbb',
-    fontWeight: active ? 'bold' : 'normal',
+    background: active ? '#0C7FDA' : 'transparent',
+    color: active ? '#FFFFFF' : '#5D7285',
+    fontWeight: active ? 600 : 400,
     cursor: 'pointer',
-    transition: 'all 0.15s',
+    fontFamily: 'Poppins, sans-serif',
   };
 }

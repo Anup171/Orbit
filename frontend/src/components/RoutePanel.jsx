@@ -1,443 +1,483 @@
 /**
  * RoutePanel.jsx
  * ---------------
- * Interactive side panel displaying the prioritised disaster triage queue,
- * statistical metrics, filter/search controls, and emergency rescue routing dispatch.
+ * Clean, flat Rescue Priority & Triage + Rescue Planning panel matching the
+ * restrained Light (#FFFFFF / #EFF2F4) & Dark (#0D2238 / #031C30) theme.
  */
 
 import React, { useState, useMemo } from 'react';
 
 const DAMAGE_COLORS = {
-  'no-damage': '#2ecc71',
-  'minor-damage': '#f1c40f',
-  'major-damage': '#e67e22',
-  'destroyed': '#e74c3c',
-};
-
-const DAMAGE_ICONS = {
-  'no-damage': '✓',
-  'minor-damage': '⚡',
-  'major-damage': '⚠',
-  'destroyed': '🔥',
+  'no-damage': '#27ae60',
+  'minor-damage': '#d4ac0d',
+  'major-damage': '#d35400',
+  'destroyed': '#c0392b',
 };
 
 export default function RoutePanel({
+  darkMode = false,
   buildings = [],
   selectedBuilding,
   onSelectBuilding,
-  onRequestRoute,
-  activeRouteInfo,
+  rescueBase,
+  isSelectingBase,
+  onToggleSelectBase,
+  onGenerateRoute,
+  isRouting = false,
+  routingMessage = '',
+  refreshCache = false,
+  onToggleRefreshCache,
+  routePlan = null,
+  showDamageLayers,
+  onToggleDamageLayers,
+  showRescueRoutes,
+  onToggleRescueRoutes,
+  damageFilter,
+  onChangeDamageFilter,
+  minPriority,
+  onChangeMinPriority,
+  onlyManualReview,
+  onToggleManualReview,
+  numTeams,
+  onChangeNumTeams,
+  maxStops,
+  onChangeMaxStops,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterClass, setFilterClass] = useState('ALL'); // 'ALL', 'destroyed', 'major-damage', 'minor-damage', 'no-damage', 'REVIEW'
-  const [sortBy, setSortBy] = useState('rank'); // 'rank', 'damage', 'area'
+  const [sortCol, setSortCol] = useState('priority_score');
+  const [sortAsc, setSortAsc] = useState(false);
 
-  // Extract clean properties list from GeoJSON features
+  const surface = darkMode ? '#0D2238' : '#FFFFFF';
+  const subtle = darkMode ? '#112A45' : '#F7F9FA';
+  const borderCol = darkMode ? '#19354F' : '#E1E7EC';
+  const textPrimary = darkMode ? '#EFF2F4' : '#1E252B';
+  const textMuted = darkMode ? '#9CB2C5' : '#5D7285';
+  const selectedRowBg = darkMode ? '#163754' : '#E8F3FC';
+
   const allProperties = useMemo(() => {
     return (buildings || [])
       .filter((f) => f && f.properties)
-      .map((f) => ({
-        ...f.properties,
-        _geometry: f.geometry,
-      }));
+      .map((f) => ({ ...f.properties }));
   }, [buildings]);
 
-  // Aggregate statistics
   const stats = useMemo(() => {
-    const counts = { 'destroyed': 0, 'major-damage': 0, 'minor-damage': 0, 'no-damage': 0 };
+    const counts = { destroyed: 0, 'major-damage': 0, 'minor-damage': 0, 'no-damage': 0 };
     let reviewCount = 0;
-
     allProperties.forEach((p) => {
-      if (counts[p.damage_class] !== undefined) {
-        counts[p.damage_class]++;
-      }
-      if (p.needs_manual_review === true || p.needs_manual_review === 'true') {
-        reviewCount++;
-      }
+      if (counts[p.damage_class] !== undefined) counts[p.damage_class]++;
+      if (p.needs_manual_review === true || p.needs_manual_review === 'true') reviewCount++;
     });
-
+    const affected = counts.destroyed + counts['major-damage'] + counts['minor-damage'];
     return {
-      counts,
-      reviewCount,
       total: allProperties.length,
+      affected,
+      destroyed: counts.destroyed,
+      major: counts['major-damage'],
+      minor: counts['minor-damage'],
+      reviewCount,
     };
   }, [allProperties]);
 
-  // Filtered & sorted buildings
-  const displayedBuildings = useMemo(() => {
-    let result = [...allProperties];
-
-    // Filter by class or review flag
-    if (filterClass === 'REVIEW') {
-      result = result.filter((p) => p.needs_manual_review === true || p.needs_manual_review === 'true');
-    } else if (filterClass !== 'ALL') {
-      result = result.filter((p) => p.damage_class === filterClass);
+  const displayedRows = useMemo(() => {
+    let rows = [...allProperties];
+    if (damageFilter !== 'ALL') rows = rows.filter((p) => p.damage_class === damageFilter);
+    if (minPriority > 0) rows = rows.filter((p) => (p.priority_score || 0) >= minPriority);
+    if (onlyManualReview) {
+      rows = rows.filter((p) => p.needs_manual_review === true || p.needs_manual_review === 'true');
     }
-
-    // Filter by search query
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      result = result.filter((p) =>
-        (p.building_id || '').toLowerCase().includes(q) ||
-        (p.damage_class || '').toLowerCase().includes(q)
+      rows = rows.filter(
+        (p) =>
+          (p.building_id || '').toLowerCase().includes(q) ||
+          (p.damage_class || '').toLowerCase().includes(q)
       );
     }
 
-    // Sort
-    result.sort((a, b) => {
-      if (sortBy === 'damage') {
-        return (b.damage_score || 0) - (a.damage_score || 0);
+    rows.sort((a, b) => {
+      let va = a[sortCol];
+      let vb = b[sortCol];
+      if (sortCol === 'visit_order' || sortCol === 'travel_time_minutes') {
+        va = va != null ? Number(va) : 999999;
+        vb = vb != null ? Number(vb) : 999999;
+      } else if (typeof va === 'string' || typeof vb === 'string') {
+        return sortAsc
+          ? String(va || '').localeCompare(String(vb || ''))
+          : String(vb || '').localeCompare(String(va || ''));
+      } else {
+        va = Number(va ?? -1);
+        vb = Number(vb ?? -1);
       }
-      if (sortBy === 'area') {
-        return (b.area_sq_m || 0) - (a.area_sq_m || 0);
-      }
-      // default: rank
-      return (a.priority_rank || 999) - (b.priority_rank || 999);
+      return sortAsc ? va - vb : vb - va;
     });
+    return rows;
+  }, [allProperties, damageFilter, minPriority, onlyManualReview, searchTerm, sortCol, sortAsc]);
 
-    return result;
-  }, [allProperties, filterClass, searchTerm, sortBy]);
+  const handleSort = (col) => {
+    if (sortCol === col) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortCol(col);
+      setSortAsc(col === 'visit_order' || col === 'travel_time_minutes' || col === 'building_id');
+    }
+  };
+  const sortArrow = (col) => (sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : '');
+
+  const inputStyle = {
+    backgroundColor: subtle,
+    color: textPrimary,
+    border: `1px solid ${borderCol}`,
+    borderRadius: 4,
+    padding: '5px 8px',
+    fontSize: 11.5,
+    fontFamily: 'Poppins, sans-serif',
+  };
 
   return (
-    <div style={panelContainerStyle}>
+    <div
+      style={{
+        width: 390,
+        minWidth: 340,
+        backgroundColor: surface,
+        color: textPrimary,
+        display: 'flex',
+        flexDirection: 'column',
+        border: `1px solid ${borderCol}`,
+        borderRadius: 6,
+        height: '100%',
+        overflow: 'hidden',
+      }}
+    >
       {/* Header */}
-      <div style={headerStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 18 }}>🚨</span>
+      <div style={{ padding: '12px 16px', borderBottom: `1px solid ${borderCol}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: '700', color: '#fff' }}>
-              Triage & Routing Queue
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: textPrimary }}>
+              Rescue Priority & Triage
             </h3>
-            <span style={{ fontSize: 11, color: '#888' }}>
-              {stats.total} total structures assessed
+            <span style={{ fontSize: 11, color: textMuted }}>
+              Expected Severity · OSMnx Road Routing
             </span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, fontSize: 10 }}>
+            <LegendDot color={DAMAGE_COLORS.destroyed} label="Dest" muted={textMuted} />
+            <LegendDot color={DAMAGE_COLORS['major-damage']} label="Maj" muted={textMuted} />
+            <LegendDot color={DAMAGE_COLORS['minor-damage']} label="Min" muted={textMuted} />
+            <LegendDot color={DAMAGE_COLORS['no-damage']} label="OK" muted={textMuted} />
           </div>
         </div>
       </div>
 
-      {/* Aggregate Overview Card */}
-      {stats.total > 0 && (
-        <div style={statsContainerStyle}>
-          <div style={statRowStyle}>
-            <StatChip label="Destroyed" count={stats.counts['destroyed']} color={DAMAGE_COLORS['destroyed']} />
-            <StatChip label="Major" count={stats.counts['major-damage']} color={DAMAGE_COLORS['major-damage']} />
-            <StatChip label="Minor" count={stats.counts['minor-damage']} color={DAMAGE_COLORS['minor-damage']} />
-            <StatChip label="Intact" count={stats.counts['no-damage']} color={DAMAGE_COLORS['no-damage']} />
+      {/* 1. Disaster Overview */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${borderCol}` }}>
+        <div style={{ fontSize: 10.5, fontWeight: 600, color: textMuted, marginBottom: 6 }}>
+          DISASTER OVERVIEW
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+          <MetricBox label="Total" value={stats.total} color={textPrimary} bg={subtle} border={borderCol} muted={textMuted} />
+          <MetricBox label="Affected" value={stats.affected} color="#d35400" bg={subtle} border={borderCol} muted={textMuted} />
+          <MetricBox label="Dest" value={stats.destroyed} color={DAMAGE_COLORS.destroyed} bg={subtle} border={borderCol} muted={textMuted} />
+          <MetricBox label="Major" value={stats.major} color={DAMAGE_COLORS['major-damage']} bg={subtle} border={borderCol} muted={textMuted} />
+          <MetricBox label="Minor" value={stats.minor} color={DAMAGE_COLORS['minor-damage']} bg={subtle} border={borderCol} muted={textMuted} />
+          <MetricBox label="Review" value={stats.reviewCount} color="#0C7FDA" bg={subtle} border={borderCol} muted={textMuted} />
+        </div>
+      </div>
+
+      {/* 2. Rescue Planning */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${borderCol}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: textMuted }}>RESCUE PLANNING</span>
+          <button
+            type="button"
+            onClick={onToggleSelectBase}
+            style={{
+              padding: '4px 9px',
+              borderRadius: 4,
+              border: '1px solid #0C7FDA',
+              backgroundColor: isSelectingBase ? '#0C7FDA' : 'transparent',
+              color: isSelectingBase ? '#FFFFFF' : '#0C7FDA',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {isSelectingBase ? 'Click Map for Base...' : 'Select Base on Map'}
+          </button>
+        </div>
+
+        <div style={{ fontSize: 11.5, color: textMuted, marginBottom: 8 }}>
+          Base:{' '}
+          <strong style={{ color: textPrimary }}>
+            {rescueBase ? `${rescueBase.lat.toFixed(4)}, ${rescueBase.lon.toFixed(4)}` : 'Not set'}
+          </strong>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+          <label style={{ fontSize: 11, color: textMuted, flex: 1 }}>
+            Teams:{' '}
+            <select
+              value={numTeams}
+              onChange={(e) => onChangeNumTeams(Number(e.target.value))}
+              style={{ ...inputStyle, padding: '3px 6px' }}
+            >
+              <option value={1}>1 Team</option>
+              <option value={2}>2 Teams</option>
+              <option value={3}>3 Teams</option>
+            </select>
+          </label>
+          <label style={{ fontSize: 11, color: textMuted, flex: 1 }}>
+            Stops:{' '}
+            <select
+              value={maxStops}
+              onChange={(e) => onChangeMaxStops(Number(e.target.value))}
+              style={{ ...inputStyle, padding: '3px 6px' }}
+            >
+              <option value={6}>6</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </label>
+          <label
+            title="Force fresh Overpass download instead of cached GraphML"
+            style={{ fontSize: 10.5, color: textMuted, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+          >
+            <input type="checkbox" checked={refreshCache} onChange={onToggleRefreshCache} />
+            Refresh OSM
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onClick={onGenerateRoute}
+          disabled={isRouting}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            borderRadius: 6,
+            border: 'none',
+            backgroundColor: isRouting ? '#5D7285' : '#0C7FDA',
+            color: '#FFFFFF',
+            fontWeight: 600,
+            fontSize: 12.5,
+            cursor: isRouting ? 'wait' : 'pointer',
+          }}
+        >
+          {isRouting
+            ? routingMessage || 'Downloading road network...'
+            : routePlan
+              ? 'Recalculate Rescue Route'
+              : 'Generate Rescue Route'}
+        </button>
+
+        {!isRouting && routingMessage && routePlan?.status === 'ok' && (
+          <div style={{ fontSize: 11, color: '#27ae60', marginTop: 6 }}>
+            {routingMessage}
           </div>
-          {stats.reviewCount > 0 && (
-            <div style={reviewAlertStyle}>
-              <span>⚠</span>
-              <span><strong>{stats.reviewCount}</strong> buildings require calibration review</span>
+        )}
+
+        {routePlan && routePlan.status === 'road_network_unavailable' && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: '8px 10px',
+              backgroundColor: darkMode ? '#2b1619' : '#FDEDEC',
+              border: '1px solid #c0392b',
+              borderRadius: 4,
+              color: darkMode ? '#f5b7b1' : '#922b21',
+              fontSize: 11,
+            }}
+          >
+            <strong>OSM Road Network Unavailable:</strong>{' '}
+            {routePlan.error || 'Unable to retrieve road network. Please retry later.'}
+          </div>
+        )}
+
+        {routePlan && routePlan.status === 'ok' && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: '8px 10px',
+              backgroundColor: subtle,
+              border: `1px solid ${borderCol}`,
+              borderRadius: 4,
+            }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, fontSize: 11.5 }}>
+              <div>Stops: <strong style={{ color: '#0C7FDA' }}>{routePlan.summary?.rescue_stops_count ?? 0}</strong></div>
+              <div>Road Dist: <strong>{routePlan.summary?.total_route_distance_km ?? 0} km</strong></div>
+              <div>Est. Time: <strong>{routePlan.summary?.total_route_travel_time_minutes ?? 0} min</strong></div>
+              <div>Unroutable: <strong>{routePlan.summary?.unroutable_buildings ?? 0}</strong></div>
             </div>
-          )}
-        </div>
-      )}
+            <div style={{ fontSize: 10, color: textMuted, marginTop: 4, lineHeight: 1.35 }}>
+              Heuristic route (greedy priority-per-travel-time; not globally optimal).
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* Search & Filter Toolbar */}
-      <div style={filterToolbarStyle}>
-        <input
-          type="text"
-          placeholder="🔍 Search building ID..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={searchInputStyle}
-        />
-
-        {/* Filter Pills */}
-        <div style={chipsContainerStyle}>
-          <button
-            onClick={() => setFilterClass('ALL')}
-            style={getChipStyle(filterClass === 'ALL', '#555')}
-          >
-            All ({stats.total})
-          </button>
-          <button
-            onClick={() => setFilterClass('destroyed')}
-            style={getChipStyle(filterClass === 'destroyed', DAMAGE_COLORS['destroyed'])}
-          >
-            Destroyed ({stats.counts['destroyed']})
-          </button>
-          <button
-            onClick={() => setFilterClass('major-damage')}
-            style={getChipStyle(filterClass === 'major-damage', DAMAGE_COLORS['major-damage'])}
-          >
-            Major ({stats.counts['major-damage']})
-          </button>
-          <button
-            onClick={() => setFilterClass('REVIEW')}
-            style={getChipStyle(filterClass === 'REVIEW', '#9b59b6')}
-          >
-            Review ({stats.reviewCount})
-          </button>
+      {/* 3. Map Controls & Filters */}
+      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${borderCol}` }}>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 8, fontSize: 11.5, color: textMuted }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+            <input type="checkbox" checked={showDamageLayers} onChange={onToggleDamageLayers} />
+            Damage
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+            <input type="checkbox" checked={showRescueRoutes} onChange={onToggleRescueRoutes} />
+            Routes
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+            <input type="checkbox" checked={onlyManualReview} onChange={onToggleManualReview} />
+            Review Only
+          </label>
         </div>
 
-        {/* Sort Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-          <span style={{ fontSize: 11, color: '#888' }}>Sort by:</span>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="Search ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ ...inputStyle, flex: 1, minWidth: 80 }}
+          />
           <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            style={selectStyle}
+            value={damageFilter}
+            onChange={(e) => onChangeDamageFilter(e.target.value)}
+            style={inputStyle}
           >
-            <option value="rank">Priority Rank</option>
-            <option value="damage">Damage Severity</option>
-            <option value="area">Footprint Area</option>
+            <option value="ALL">All Classes</option>
+            <option value="destroyed">Destroyed</option>
+            <option value="major-damage">Major</option>
+            <option value="minor-damage">Minor</option>
+            <option value="no-damage">Intact</option>
+          </select>
+          <select
+            value={minPriority}
+            onChange={(e) => onChangeMinPriority(Number(e.target.value))}
+            style={inputStyle}
+          >
+            <option value={0}>Any Prio</option>
+            <option value={0.4}>≥ 0.4</option>
+            <option value={0.6}>≥ 0.6</option>
+            <option value={0.75}>≥ 0.75</option>
           </select>
         </div>
       </div>
 
-      {/* Active Route Info Card (if computed) */}
-      {activeRouteInfo && (
-        <div style={activeRouteCardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong style={{ color: '#00d2ff', fontSize: 12 }}>⚡ Active Rescue Route</strong>
-            <span style={{ fontSize: 11, color: '#aaa' }}>ETA: {activeRouteInfo.travel_time_minutes} min</span>
-          </div>
-          <div style={{ fontSize: 11, color: '#ccc', marginTop: 4 }}>
-            Distance: <strong>{activeRouteInfo.distance_km} km</strong> · Staging $\rightarrow$ {activeRouteInfo.targetId}
-          </div>
-        </div>
-      )}
+      {/* 4. Sortable Priority Table */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+          <thead>
+            <tr style={{ position: 'sticky', top: 0, backgroundColor: subtle, borderBottom: `1px solid ${borderCol}`, zIndex: 2 }}>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('building_id')}>ID{sortArrow('building_id')}</th>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('damage_class')}>Class{sortArrow('damage_class')}</th>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('area_sq_m')}>Area{sortArrow('area_sq_m')}</th>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('priority_score')}>Prio{sortArrow('priority_score')}</th>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('travel_time_minutes')}>Time{sortArrow('travel_time_minutes')}</th>
+              <th style={thStyle(textMuted)} onClick={() => handleSort('visit_order')}>Stop{sortArrow('visit_order')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedRows.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: 20, color: textMuted }}>
+                  No buildings match filters.
+                </td>
+              </tr>
+            ) : (
+              displayedRows.map((p) => {
+                const isSelected = selectedBuilding && selectedBuilding.building_id === p.building_id;
+                const color = DAMAGE_COLORS[p.damage_class] || textMuted;
+                const review = p.needs_manual_review === true || p.needs_manual_review === 'true';
 
-      {/* Buildings List */}
-      <div style={listContainerStyle}>
-        {displayedBuildings.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', color: '#666', fontSize: 13 }}>
-            No structures match current filter.
-          </div>
-        ) : (
-          displayedBuildings.map((p) => {
-            const isSelected = selectedBuilding && selectedBuilding.building_id === p.building_id;
-            const needsReview = p.needs_manual_review === true || p.needs_manual_review === 'true';
-            const color = DAMAGE_COLORS[p.damage_class] || '#888';
-
-            return (
-              <div
-                key={p.building_id}
-                onClick={() => onSelectBuilding && onSelectBuilding(p)}
-                style={{
-                  ...cardStyle,
-                  borderLeft: `4px solid ${color}`,
-                  background: isSelected ? '#1b2a38' : '#1c1c1c',
-                  boxShadow: isSelected ? '0 0 12px rgba(0, 210, 255, 0.4)' : 'none',
-                }}
-              >
-                {/* Header Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 14 }}>{DAMAGE_ICONS[p.damage_class] || '●'}</span>
-                    <strong style={{ fontSize: 13, color: '#fff' }}>{p.building_id}</strong>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {needsReview && (
-                      <span style={reviewBadgeStyle}>REVIEW</span>
-                    )}
-                    <span style={rankBadgeStyle}>#{p.priority_rank}</span>
-                  </div>
-                </div>
-
-                {/* Metrics Row */}
-                <div style={{ fontSize: 11, color: '#aaa', marginTop: 6, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ color: color, fontWeight: 'bold' }}>
-                    {p.damage_class?.replace('-', ' ')}
-                  </span>
-                  <span>Confidence: <strong style={{ color: '#fff' }}>{(p.damage_score * 100).toFixed(0)}%</strong></span>
-                  <span>Area: <strong style={{ color: '#fff' }}>{p.area_sq_m} m²</strong></span>
-                </div>
-
-                {/* Action Buttons */}
-                <div style={{ display: 'flex', gap: 8, marginTop: 8, paddingTop: 6, borderTop: '1px solid #282828' }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectBuilding && onSelectBuilding(p);
+                return (
+                  <tr
+                    key={p.building_id}
+                    onClick={() => onSelectBuilding && onSelectBuilding(p)}
+                    style={{
+                      backgroundColor: isSelected ? selectedRowBg : 'transparent',
+                      borderBottom: `1px solid ${borderCol}`,
+                      cursor: 'pointer',
                     }}
-                    style={actionBtnStyle}
                   >
-                    📍 Focus Map
-                  </button>
-                  {onRequestRoute && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRequestRoute(p);
-                      }}
-                      style={{ ...actionBtnStyle, background: '#005b8e', borderColor: '#0088cc', color: '#fff' }}
-                    >
-                      🚒 Dispatch Route
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
+                    <td style={{ padding: '7px 8px', fontWeight: 600, color: textPrimary }}>
+                      {p.building_id.replace('bldg_', '#')}
+                      {review && <span title="Needs Manual Review" style={{ color: '#0C7FDA', marginLeft: 3 }}>•</span>}
+                    </td>
+                    <td style={{ padding: '7px 6px', color, fontWeight: 600 }}>
+                      {(p.damage_class || '').replace('-damage', '').replace('no-damage', 'intact')}
+                    </td>
+                    <td style={{ padding: '7px 6px', color: textMuted }}>
+                      {p.area_sq_m ? `${Math.round(p.area_sq_m)}` : '—'}
+                    </td>
+                    <td style={{ padding: '7px 6px', color: '#0C7FDA', fontWeight: 600 }}>
+                      {p.priority_score != null ? Number(p.priority_score).toFixed(2) : '—'}
+                    </td>
+                    <td style={{ padding: '7px 6px', color: textMuted }}>
+                      {p.travel_time_minutes != null
+                        ? `${Number(p.travel_time_minutes).toFixed(1)}m`
+                        : p.reachable === false
+                          ? 'N/A'
+                          : '—'}
+                    </td>
+                    <td style={{ padding: '7px 6px', textAlign: 'center' }}>
+                      {p.visit_order != null ? (
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            backgroundColor: '#0C7FDA',
+                            color: '#FFFFFF',
+                            borderRadius: 4,
+                            padding: '1px 6px',
+                            fontSize: 10.5,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {p.visit_order}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
-// ── Components ──────────────────────────────────────────────
-
-function StatChip({ label, count, color }) {
+function LegendDot({ color, label, muted }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-      <span style={{ color: '#aaa' }}>{label}:</span>
-      <strong style={{ color: '#fff' }}>{count}</strong>
+    <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: muted }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: color, display: 'inline-block' }} />
+      {label}
+    </span>
+  );
+}
+
+function MetricBox({ label, value, color, bg, border, muted }) {
+  return (
+    <div style={{ backgroundColor: bg, border: `1px solid ${border}`, borderRadius: 4, padding: '5px 4px', textAlign: 'center' }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color }}>{value}</div>
+      <div style={{ fontSize: 9.5, color: muted }}>{label}</div>
     </div>
   );
 }
 
-// ── Style Definitions ───────────────────────────────────────
-
-const panelContainerStyle = {
-  width: 360,
-  minWidth: 320,
-  maxWidth: 420,
-  background: '#141414',
-  color: '#e0e0e0',
-  display: 'flex',
-  flexDirection: 'column',
-  borderLeft: '1px solid #2a2a2a',
-  height: '100%',
-  overflow: 'hidden',
-};
-
-const headerStyle = {
-  padding: '14px 16px',
-  background: '#1a1a1a',
-  borderBottom: '1px solid #282828',
-};
-
-const statsContainerStyle = {
-  padding: '10px 16px',
-  background: '#171717',
-  borderBottom: '1px solid #282828',
-};
-
-const statRowStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  flexWrap: 'wrap',
-  gap: 8,
-};
-
-const reviewAlertStyle = {
-  marginTop: 8,
-  background: 'rgba(155, 89, 182, 0.15)',
-  border: '1px solid #9b59b6',
-  borderRadius: 4,
-  padding: '4px 8px',
-  color: '#d7bde2',
-  fontSize: 11,
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
-};
-
-const filterToolbarStyle = {
-  padding: '10px 16px',
-  borderBottom: '1px solid #282828',
-  background: '#161616',
-};
-
-const searchInputStyle = {
-  width: '100%',
-  padding: '7px 10px',
-  borderRadius: 6,
-  border: '1px solid #333',
-  background: '#222',
-  color: '#fff',
-  fontSize: 12,
-  outline: 'none',
-};
-
-const chipsContainerStyle = {
-  display: 'flex',
-  gap: 6,
-  marginTop: 8,
-  overflowX: 'auto',
-  paddingBottom: 2,
-};
-
-function getChipStyle(active, color) {
+function thStyle(color) {
   return {
-    padding: '3px 8px',
-    borderRadius: 12,
-    border: `1px solid ${active ? color : '#333'}`,
-    background: active ? color : 'transparent',
-    color: active ? '#fff' : '#aaa',
-    fontSize: 10,
-    fontWeight: 'bold',
+    padding: '7px 6px',
+    textAlign: 'left',
+    fontSize: 10.5,
+    color,
+    fontWeight: 600,
     cursor: 'pointer',
+    userSelect: 'none',
     whiteSpace: 'nowrap',
-    transition: 'all 0.15s',
   };
 }
-
-const selectStyle = {
-  background: '#222',
-  color: '#ddd',
-  border: '1px solid #333',
-  borderRadius: 4,
-  padding: '3px 6px',
-  fontSize: 11,
-  outline: 'none',
-};
-
-const activeRouteCardStyle = {
-  margin: '8px 14px 0 14px',
-  padding: '8px 12px',
-  background: '#0d2233',
-  border: '1px solid #0088cc',
-  borderRadius: 6,
-};
-
-const listContainerStyle = {
-  flex: 1,
-  overflowY: 'auto',
-  padding: '8px 12px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-};
-
-const cardStyle = {
-  padding: '10px 12px',
-  borderRadius: 6,
-  border: '1px solid #282828',
-  cursor: 'pointer',
-  transition: 'transform 0.1s, background 0.15s, box-shadow 0.15s',
-};
-
-const rankBadgeStyle = {
-  background: '#2a2a2a',
-  color: '#00d2ff',
-  padding: '2px 6px',
-  borderRadius: 4,
-  fontSize: 11,
-  fontWeight: 'bold',
-  border: '1px solid #333',
-};
-
-const reviewBadgeStyle = {
-  background: '#9b59b6',
-  color: '#fff',
-  padding: '2px 5px',
-  borderRadius: 3,
-  fontSize: 9,
-  fontWeight: 'bold',
-  letterSpacing: 0.5,
-};
-
-const actionBtnStyle = {
-  flex: 1,
-  padding: '4px 8px',
-  fontSize: 11,
-  background: '#252525',
-  color: '#ccc',
-  border: '1px solid #3a3a3a',
-  borderRadius: 4,
-  cursor: 'pointer',
-};

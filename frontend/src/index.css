@@ -1,4 +1,36 @@
-/* Global styles for Disaster Assessment Platform */
+/* Clean Flat Light & Dark Admin Theme */
+:root {
+  --bg-workspace: #EFF2F4;
+  --bg-surface: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-subtle: #F7F9FA;
+  --bg-selected: #E8F3FC;
+  --border-color: #E1E7EC;
+  --text-primary: #1E252B;
+  --text-default: #5D7285;
+  --text-muted: #8C9BA8;
+  --accent-blue: #0C7FDA;
+  --accent-blue-text: #0C7FDA;
+  --logout-bg: #5D7285;
+  --logout-text: #FFFFFF;
+}
+
+[data-theme="dark"] {
+  --bg-workspace: #071626;
+  --bg-surface: #0D2238;
+  --bg-sidebar: #031C30;
+  --bg-subtle: #112A45;
+  --bg-selected: #163754;
+  --border-color: #19354F;
+  --text-primary: #EFF2F4;
+  --text-default: #B6C6D4;
+  --text-muted: #7F96AA;
+  --accent-blue: #0C7FDA;
+  --accent-blue-text: #FFFFFF;
+  --logout-bg: #4B6275;
+  --logout-text: #FFFFFF;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -9,63 +41,84 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #121212;
-  color: #f0f0f0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-workspace);
+  color: var(--text-primary);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom MapLibre Popup styling */
+.font-heading {
+  font-family: 'Epilogue', 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* Visible keyboard focus states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0C7FDA;
+  outline-offset: 2px;
+}
+
+/* MapLibre Popup styling matching clean flat card */
 .maplibregl-popup {
   z-index: 100;
 }
 
 .maplibregl-popup-content {
-  background: #1e1e1e !important;
-  color: #f0f0f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
-  border: 1px solid #333 !important;
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 10px rgba(30, 37, 43, 0.12) !important;
+  border: 1px solid var(--border-color) !important;
   padding: 12px 14px !important;
-  font-size: 13px !important;
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 12px !important;
   line-height: 1.5 !important;
 }
 
 .maplibregl-popup-anchor-top .maplibregl-popup-tip {
-  border-bottom-color: #1e1e1e !important;
+  border-bottom-color: var(--bg-surface) !important;
 }
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-  border-top-color: #1e1e1e !important;
+  border-top-color: var(--bg-surface) !important;
 }
 .maplibregl-popup-anchor-left .maplibregl-popup-tip {
-  border-right-color: #1e1e1e !important;
+  border-right-color: var(--bg-surface) !important;
 }
 .maplibregl-popup-anchor-right .maplibregl-popup-tip {
-  border-left-color: #1e1e1e !important;
+  border-left-color: var(--bg-surface) !important;
 }
 
 .maplibregl-popup-close-button {
-  color: #bbb !important;
+  color: var(--text-default) !important;
   font-size: 16px !important;
   padding: 4px 8px !important;
 }
 
-.maplibregl-popup-close-button:hover {
-  color: #fff !important;
-  background: transparent !important;
+/* Responsive sidebar visibility */
+@media (max-width: 900px) {
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+  .desktop-sidebar {
+    display: none !important;
+  }
 }
 
-/* Custom scrollbars */
+/* Clean scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--border-color);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--text-muted);
 }
