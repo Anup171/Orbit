@@ -1,25 +1,21 @@
 /**
  * AdminSidebar.jsx
  * ----------------
- * Clean, flat, restrained vertical navigation sidebar with Light (#FFFFFF)
- * and Dark (#031C30) themes, expanded (300px) / collapsed (100px) states,
- * filled SVG icons, Comments count badge, bottom theme switch & Logout button,
- * and responsive mobile drawer support.
+ * Clean, flat vertical navigation sidebar containing ONLY project-relevant
+ * items for the Disaster Damage Assessment & Rescue Triage platform:
+ *   - Dashboard (Global Disaster Intelligence)
+ *   - Assessment Map (Pre/Post Satellite & Routing)
+ *   - Global Zones (2,283 Worldwide Scenes)
+ *   - Manual Review (Low-Confidence Queue with count badge)
+ *   - Upload Imagery (Custom Pre/Post Inference)
+ *   - OSM Cache & Tools
  */
 
 import React from 'react';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'home' },
-  { id: 'posts', label: 'Posts', icon: 'post' },
-  { id: 'media', label: 'Media', icon: 'image' },
-  { id: 'pages', label: 'Pages', icon: 'document' },
-  { id: 'comments', label: 'Comments', icon: 'comment', hasBadge: true },
-  { id: 'appearance', label: 'Appearance', icon: 'grid' },
-  { id: 'plugins', label: 'Plugins', icon: 'plugin' },
-  { id: 'users', label: 'Users', icon: 'users' },
-  { id: 'settings', label: 'Settings', icon: 'gear' },
-  { id: 'tools', label: 'Tools', icon: 'sliders' },
+  { id: 'assessment', label: 'Assessment Map', icon: 'map' },
 ];
 
 function NavIcon({ name, color }) {
@@ -31,52 +27,28 @@ function NavIcon({ name, color }) {
           <path d="M12 3L3 10.5V21a1 1 0 001 1h5.5v-6.5h5V22H20a1 1 0 001-1V10.5L12 3z" />
         </svg>
       );
-    case 'post':
+    case 'map':
       return (
         <svg {...props}>
-          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1.003 1.003 0 000-1.42l-2.34-2.34a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" />
+          <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
+        </svg>
+      );
+    case 'globe':
+      return (
+        <svg {...props}>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+        </svg>
+      );
+    case 'review':
+      return (
+        <svg {...props}>
+          <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
         </svg>
       );
     case 'image':
       return (
         <svg {...props}>
           <path d="M21 5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z" />
-        </svg>
-      );
-    case 'document':
-      return (
-        <svg {...props}>
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm1 7V3.5L19.5 9H15zM8 13h8v1.8H8V13zm0 3.5h8v1.8H8v-1.8z" />
-        </svg>
-      );
-    case 'comment':
-      return (
-        <svg {...props}>
-          <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
-        </svg>
-      );
-    case 'grid':
-      return (
-        <svg {...props}>
-          <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-        </svg>
-      );
-    case 'plugin':
-      return (
-        <svg {...props}>
-          <path d="M20.5 11H19V7a2 2 0 00-2-2h-4V3.5a2.5 2.5 0 00-5 0V5H4a2 2 0 00-2 2v3.8h1.5a2.7 2.7 0 010 5.4H2V20a2 2 0 002 2h3.8v-1.5a2.7 2.7 0 015.4 0V22H17a2 2 0 002-2v-4h1.5a2.5 2.5 0 000-5z" />
-        </svg>
-      );
-    case 'users':
-      return (
-        <svg {...props}>
-          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-        </svg>
-      );
-    case 'gear':
-      return (
-        <svg {...props}>
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96a7.03 7.03 0 00-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.3.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z" />
         </svg>
       );
     case 'sliders':
@@ -90,18 +62,18 @@ function NavIcon({ name, color }) {
 }
 
 export default function AdminSidebar({
-  activeNav = 'posts',
+  activeNav = 'assessment',
   onSelectNav,
   collapsed = false,
   onToggleCollapse,
   darkMode = false,
   onToggleDarkMode,
-  commentBadgeCount = 0,
+  reviewBadgeCount = 0,
   mobileOpen = false,
   onCloseMobile,
-  onLogout,
+  onResetWorkspace,
 }) {
-  const sidebarWidth = collapsed ? 100 : 300;
+  const sidebarWidth = collapsed ? 100 : 280;
   const bg = darkMode ? '#031C30' : '#FFFFFF';
   const borderCol = darkMode ? '#143049' : '#E1E7EC';
   const defaultColor = darkMode ? '#EFF2F4' : '#5D7285';
@@ -137,7 +109,6 @@ export default function AdminSidebar({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-          {/* Small blue geometric logo */}
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <rect width="28" height="28" rx="6" fill="#0C7FDA" />
             <path d="M8 14L14 8L20 14L14 20L8 14Z" fill="#FFFFFF" />
@@ -150,8 +121,6 @@ export default function AdminSidebar({
                 fontWeight: 600,
                 color: darkMode ? '#EFF2F4' : '#1E252B',
                 whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
               }}
             >
               DisasterOps
@@ -226,11 +195,10 @@ export default function AdminSidebar({
                 <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{item.label}</span>
               )}
 
-              {/* Comments / Manual Review Count Badge */}
-              {item.hasBadge && commentBadgeCount > 0 && (
+              {item.hasBadge && reviewBadgeCount > 0 && (
                 collapsed ? (
                   <span
-                    aria-label={`${commentBadgeCount} items`}
+                    aria-label={`${reviewBadgeCount} items`}
                     style={{
                       position: 'absolute',
                       top: 8,
@@ -253,7 +221,7 @@ export default function AdminSidebar({
                       lineHeight: '16px',
                     }}
                   >
-                    {commentBadgeCount}
+                    {reviewBadgeCount}
                   </span>
                 )
               )}
@@ -262,7 +230,7 @@ export default function AdminSidebar({
         })}
       </nav>
 
-      {/* Bottom Anchored Controls: Theme Switch + Logout */}
+      {/* Bottom Anchored Controls */}
       <div
         style={{
           marginTop: 'auto',
@@ -272,7 +240,6 @@ export default function AdminSidebar({
           gap: 16,
         }}
       >
-        {/* Moon Icon + Theme Label + Compact Switch */}
         <div
           style={{
             display: 'flex',
@@ -282,13 +249,7 @@ export default function AdminSidebar({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill={defaultColor}
-              aria-hidden="true"
-            >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={defaultColor} aria-hidden="true">
               <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
             </svg>
             {!collapsed && (
@@ -314,7 +275,6 @@ export default function AdminSidebar({
                 position: 'relative',
                 cursor: 'pointer',
                 padding: 0,
-                transition: 'background-color 0.15s ease',
               }}
             >
               <span
@@ -333,46 +293,11 @@ export default function AdminSidebar({
           )}
         </div>
 
-        {collapsed && (
-          <button
-            type="button"
-            role="switch"
-            aria-checked={darkMode}
-            aria-label="Toggle dark mode"
-            title="Toggle Dark Mode"
-            onClick={onToggleDarkMode}
-            style={{
-              width: 40,
-              height: 22,
-              margin: '0 auto',
-              borderRadius: 11,
-              border: 'none',
-              backgroundColor: darkMode ? '#0C7FDA' : '#CBD5E1',
-              position: 'relative',
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          >
-            <span
-              style={{
-                position: 'absolute',
-                top: 3,
-                left: darkMode ? 21 : 3,
-                width: 16,
-                height: 16,
-                borderRadius: '50%',
-                backgroundColor: '#FFFFFF',
-              }}
-            />
-          </button>
-        )}
-
-        {/* Full-width Slate Logout Button */}
         <button
           type="button"
-          onClick={onLogout}
-          aria-label="Logout"
-          title={collapsed ? 'Logout' : undefined}
+          onClick={onResetWorkspace}
+          aria-label="Reset View"
+          title={collapsed ? 'Reset View' : undefined}
           style={{
             width: '100%',
             display: 'flex',
@@ -393,7 +318,7 @@ export default function AdminSidebar({
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true">
             <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 00-2 2v14a2 2 0 002 2h8v-2H4V5z" />
           </svg>
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>Reset View</span>}
         </button>
       </div>
     </aside>
@@ -401,28 +326,15 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
       <div className="desktop-sidebar" style={{ height: '100%', display: mobileOpen ? 'none' : 'block' }}>
         {sidebarContent}
       </div>
 
-      {/* Mobile Dismissible Drawer */}
       {mobileOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            display: 'flex',
-          }}
-        >
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex' }}>
           <div
             onClick={onCloseMobile}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(3, 28, 48, 0.45)',
-            }}
+            style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(3, 28, 48, 0.45)' }}
           />
           <div style={{ position: 'relative', zIndex: 201, height: '100%' }}>
             {sidebarContent}

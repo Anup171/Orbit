@@ -1,11 +1,11 @@
 /**
  * App.jsx
  * -------
- * Clean, flat, restrained Light/Dark Admin Workspace integrating:
- *   - AdminSidebar (300px expanded / 100px collapsed / mobile drawer, Posts selected initially)
- *   - TopHeader (white header bar with message notification icon & circular avatar)
- *   - DashboardView (29px Epilogue heading, #0C7FDA bar chart, list cards with circular avatars)
- *   - Live Satellite Assessment Workspace (SwipeMap + DamageLayer + RoutePanel)
+ * Streamlined Disaster Damage Assessment & Rescue Triage Workspace:
+ *   - AdminSidebar (only project-relevant items: Dashboard, Assessment Map, Global Zones, Manual Review, Upload Imagery, OSM Cache & Tools)
+ *   - TopHeader (clean white/navy header with manual review notification & user avatar)
+ *   - DashboardView (search/filter all 10 events & 2,283 global zones, bar chart, top priority buildings)
+ *   - Assessment Workspace (SwipeMap + DamageLayer + decluttered RoutePanel)
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -20,13 +20,11 @@ const API_BASE = '/api/v1';
 const RESCUE_API = '/api/rescue';
 
 export default function App() {
-  // Navigation & Theme Shell State (Posts selected in initial reference state)
-  const [activeNav, setActiveNav] = useState('posts');
+  const [activeNav, setActiveNav] = useState('assessment');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // Disaster Assessment & Routing State
   const [disasters, setDisasters] = useState([]);
   const [globalZones, setGlobalZones] = useState(null);
   const [selectedDisasterId, setSelectedDisasterId] = useState('');
@@ -48,7 +46,6 @@ export default function App() {
   const [showDamageLayers, setShowDamageLayers] = useState(true);
   const [showRescueRoutes, setShowRescueRoutes] = useState(true);
   const [damageFilter, setDamageFilter] = useState('ALL');
-  const [minPriority, setMinPriority] = useState(0);
   const [onlyManualReview, setOnlyManualReview] = useState(false);
   const [numTeams, setNumTeams] = useState(1);
   const [maxStops, setMaxStops] = useState(10);
@@ -60,7 +57,6 @@ export default function App() {
   const [routingMessage, setRoutingMessage] = useState('');
   const [refreshCache, setRefreshCache] = useState(false);
 
-  // Sync data-theme attribute for CSS variables & MapLibre popups
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
@@ -106,12 +102,11 @@ export default function App() {
     setActiveDisasterInfo(disaster);
     setMapView({ center: disaster.center, zoom: 16.5 });
 
-    const defaultBase = {
+    setRescueBase({
       lat: disaster.center[1] + 0.002,
       lon: disaster.center[0] - 0.002,
       label: `${disaster.location} Command Base`,
-    };
-    setRescueBase(defaultBase);
+    });
     setIsSelectingBase(false);
 
     setImageOverlay({
@@ -164,7 +159,6 @@ export default function App() {
     [disasters, selectDisaster]
   );
 
-  // Non-blocking OSMnx Road-Network Rescue Routing
   const runRescueRouting = useCallback(
     async (baseCoords, teamsCount, stopsCount) => {
       if (!selectedDisasterId) return;
@@ -268,11 +262,12 @@ export default function App() {
 
   const handleNavChange = (navId) => {
     setActiveNav(navId);
-    if (navId === 'comments') {
+    if (navId === 'review') {
       setOnlyManualReview(true);
-    } else if (navId === 'posts') {
+    } else if (navId === 'assessment') {
       setOnlyManualReview(false);
-    } else if (navId === 'pages') {
+    } else if (navId === 'zones') {
+      setOnlyManualReview(false);
       setMapView({ center: [-40, 22], zoom: 2.3 });
     }
   };
@@ -305,7 +300,7 @@ export default function App() {
               setIsLoading(false);
               const geo = await (await fetch(`${API_BASE}/jobs/${data.job_id}/geojson`)).json();
               setGeojsonData(geo);
-              setActiveNav('posts');
+              setActiveNav('assessment');
             } else if (st.status === 'failed') {
               clearInterval(pollInterval);
               setIsLoading(false);
@@ -336,22 +331,17 @@ export default function App() {
 
   const navTitleMap = {
     dashboard: 'Dashboard',
-    posts: 'Disaster Scenes & Assessment',
-    media: 'Satellite Imagery & Upload',
-    pages: 'Global Disaster Zones',
-    comments: 'Manual Review Queue',
-    appearance: 'Appearance',
-    plugins: 'Plugins',
-    users: 'Response Teams',
-    settings: 'Settings',
-    tools: 'OSMnx & Cache Tools',
+    assessment: 'Disaster Assessment Map',
+    zones: 'Global Disaster Zones',
+    review: 'Manual Review Queue',
+    upload: 'Upload Satellite Pair',
+    tools: 'OSM Cache & Tools',
   };
 
-  const showMapWorkspace = ['posts', 'media', 'pages', 'comments'].includes(activeNav);
+  const showMapWorkspace = ['assessment', 'zones', 'review'].includes(activeNav);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: workspaceBg }}>
-      {/* Left Vertical Admin Sidebar */}
       <AdminSidebar
         activeNav={activeNav}
         onSelectNav={handleNavChange}
@@ -359,18 +349,24 @@ export default function App() {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
-        commentBadgeCount={manualReviewCount}
+        reviewBadgeCount={manualReviewCount}
         mobileOpen={mobileDrawerOpen}
         onCloseMobile={() => setMobileDrawerOpen(false)}
-        onLogout={() => selectDisaster(disasters[0])}
+        onResetWorkspace={() => {
+          setActiveNav('assessment');
+          setOnlyManualReview(false);
+          selectDisaster(disasters[0]);
+        }}
       />
 
-      {/* Right Main Column: Top Header + Workspace */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
         <TopHeader
           darkMode={darkMode}
           onOpenMobileMenu={() => setMobileDrawerOpen(true)}
-          onSelectMessages={() => handleNavChange('comments')}
+          onSelectMessages={() => {
+            setActiveNav('assessment');
+            setOnlyManualReview((prev) => !prev);
+          }}
           unreadCount={manualReviewCount}
         />
 
@@ -380,27 +376,17 @@ export default function App() {
               darkMode={darkMode}
               buildings={geojsonData.features}
               disasters={disasters}
+              globalZones={globalZones}
               activeDisasterInfo={activeDisasterInfo}
               onSelectDisaster={selectDisaster}
-              onGoToMap={() => setActiveNav('posts')}
+              onSelectZone={handleSelectZone}
+              onGoToMap={() => setActiveNav('assessment')}
             />
           ) : showMapWorkspace ? (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '18px 22px', gap: 14 }}>
-              {/* Clean Section Header + Scene Selector Card */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: 12,
-                }}
-              >
-                <h1
-                  className="font-heading"
-                  style={{ margin: 0, fontSize: 29, fontWeight: 600, color: headingCol }}
-                >
-                  {navTitleMap[activeNav] || 'Posts'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <h1 className="font-heading" style={{ margin: 0, fontSize: 29, fontWeight: 600, color: headingCol }}>
+                  {navTitleMap[activeNav]}
                 </h1>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -434,7 +420,7 @@ export default function App() {
 
                   <button
                     type="button"
-                    onClick={() => setMapView({ center: [-40, 22], zoom: 2.3 })}
+                    onClick={() => handleNavChange('zones')}
                     style={{
                       backgroundColor: surfaceBg,
                       color: '#0C7FDA',
@@ -449,27 +435,6 @@ export default function App() {
                     Global Zones ({globalZones?.features?.length || disasters.length})
                   </button>
 
-                  <label
-                    style={{
-                      backgroundColor: '#0C7FDA',
-                      color: '#FFFFFF',
-                      borderRadius: 6,
-                      padding: '7px 12px',
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Upload Pair
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-
                   {(isLoading || jobStatus) && (
                     <span style={{ fontSize: 12, color: mutedCol }}>
                       {isLoading ? 'Loading...' : `Job: ${jobStatus}`}
@@ -478,7 +443,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Map Card + Rescue Triage Panel */}
               <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: 16 }}>
                 <div
                   style={{
@@ -507,7 +471,6 @@ export default function App() {
                       showDamageLayers={showDamageLayers}
                       showRescueRoutes={showRescueRoutes}
                       damageFilter={damageFilter}
-                      minPriority={minPriority}
                       onlyManualReview={onlyManualReview}
                       selectedBuilding={selectedBuilding}
                       onSelectBuilding={setSelectedBuilding}
@@ -536,8 +499,6 @@ export default function App() {
                   onToggleRescueRoutes={() => setShowRescueRoutes(!showRescueRoutes)}
                   damageFilter={damageFilter}
                   onChangeDamageFilter={setDamageFilter}
-                  minPriority={minPriority}
-                  onChangeMinPriority={setMinPriority}
                   onlyManualReview={onlyManualReview}
                   onToggleManualReview={() => setOnlyManualReview(!onlyManualReview)}
                   numTeams={numTeams}
@@ -548,71 +509,83 @@ export default function App() {
               </div>
             </div>
           ) : (
-            /* Restrained Flat Cards for Tools / Settings / Appearance / Plugins / Users */
             <div style={{ padding: '24px 28px', overflowY: 'auto', height: '100%' }}>
-              <h1
-                className="font-heading"
-                style={{ margin: '0 0 20px 0', fontSize: 29, fontWeight: 600, color: headingCol }}
-              >
+              <h1 className="font-heading" style={{ margin: '0 0 20px 0', fontSize: 29, fontWeight: 600, color: headingCol }}>
                 {navTitleMap[activeNav]}
               </h1>
-              <div
-                style={{
-                  backgroundColor: surfaceBg,
-                  border: `1px solid ${borderCol}`,
-                  borderRadius: 6,
-                  padding: 20,
-                  maxWidth: 640,
-                }}
-              >
-                <div style={{ fontSize: 15, fontWeight: 600, color: headingCol, marginBottom: 8 }}>
-                  {activeNav === 'tools' ? 'OSMnx Road Network Cache' : `${navTitleMap[activeNav]} Configuration`}
-                </div>
-                <p style={{ fontSize: 13, color: mutedCol, margin: '0 0 16px 0', lineHeight: 1.6 }}>
-                  {activeNav === 'tools'
-                    ? 'Road networks are cached as GraphML files in data/osm_cache/ with 180s configurable Overpass timeouts and multi-endpoint fallback.'
-                    : `Clean administrative view for ${navTitleMap[activeNav]}. Return to Posts or Dashboard to inspect live satellite damage assessments and rescue routes.`}
-                </p>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  {activeNav === 'tools' && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const r = await fetch(`${RESCUE_API}/cache/clear`, { method: 'POST' });
-                        const d = await r.json();
-                        alert(`Cleared ${d.files_removed} cached OSM files.`);
-                      }}
+              <div style={{ backgroundColor: surfaceBg, border: `1px solid ${borderCol}`, borderRadius: 6, padding: 22, maxWidth: 640 }}>
+                {activeNav === 'upload' ? (
+                  <>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: headingCol, marginBottom: 8 }}>
+                      Run Siamese ResNet-34 Inference on Custom Satellite Pair
+                    </div>
+                    <p style={{ fontSize: 13, color: mutedCol, margin: '0 0 16px 0', lineHeight: 1.6 }}>
+                      Select both a pre-disaster and post-disaster satellite image to run building localization, 4-class damage assessment, and priority scoring.
+                    </p>
+                    <label
                       style={{
-                        backgroundColor: '#5D7285',
+                        display: 'inline-block',
+                        backgroundColor: '#0C7FDA',
                         color: '#FFFFFF',
-                        border: 'none',
                         borderRadius: 6,
-                        padding: '8px 14px',
+                        padding: '9px 16px',
                         fontSize: 13,
                         fontWeight: 600,
                         cursor: 'pointer',
                       }}
                     >
-                      Clear OSM Cache
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setActiveNav('posts')}
-                    style={{
-                      backgroundColor: '#0C7FDA',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: 6,
-                      padding: '8px 14px',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Return to Satellite Map
-                  </button>
-                </div>
+                      Select Pre & Post Images
+                      <input type="file" multiple accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: headingCol, marginBottom: 8 }}>
+                      OSMnx Road Network Cache
+                    </div>
+                    <p style={{ fontSize: 13, color: mutedCol, margin: '0 0 16px 0', lineHeight: 1.6 }}>
+                      Road networks are cached as GraphML files in data/osm_cache/ with 180s configurable Overpass timeouts and multi-endpoint fallback.
+                    </p>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const r = await fetch(`${RESCUE_API}/cache/clear`, { method: 'POST' });
+                          const d = await r.json();
+                          alert(`Cleared ${d.files_removed} cached OSM files.`);
+                        }}
+                        style={{
+                          backgroundColor: '#5D7285',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '8px 14px',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Clear OSM Cache
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveNav('assessment')}
+                        style={{
+                          backgroundColor: '#0C7FDA',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '8px 14px',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Back to Assessment Map
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

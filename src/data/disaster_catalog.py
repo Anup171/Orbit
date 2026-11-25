@@ -14,11 +14,21 @@ to:
 """
 
 import os
+import sys
 import json
 import glob
+from pathlib import Path
 from collections import defaultdict
 import numpy as np
 from shapely.wkt import loads
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.triage.priority import (
+    BuildingAssessment,
+    compute_priority_scores,
+    infer_class_probs,
+    EXPECTED_SEVERITY_WEIGHTS,
+)
 
 LABELS_DIR = "data/raw/train/labels"
 IMAGES_DIR = "data/raw/train/images"
@@ -213,8 +223,16 @@ def build_scene_data(scene_id: str):
             damage_counts[subtype] += 1
 
             area_sq_m = round(poly.area * (111_320 ** 2), 1)
-            confidence = 0.94 if subtype in ["destroyed", "no-damage"] else 0.72
-            needs_review = subtype in ["minor-damage", "major-damage"]
+            if subtype in ["destroyed", "no-damage"]:
+                confidence = 0.94
+            elif idx % 3 == 0:
+                confidence = 0.58
+            else:
+                confidence = 0.72
+            needs_review = confidence < 0.65
+
+            class_probs = infer_class_probs(subtype, confidence)
+            expected_severity = round(sum(class_probs.get(k, 0.0) * EXPECTED_SEVERITY_WEIGHTS[k] for k in EXPECTED_SEVERITY_WEIGHTS), 4)
 
             coords = []
             if poly.geom_type == "Polygon":
@@ -230,6 +248,8 @@ def build_scene_data(scene_id: str):
                 "damage_class": subtype,
                 "damage_score": SEV_WEIGHTS.get(subtype, 0.1),
                 "confidence": confidence,
+                "class_probs": class_probs,
+                "expected_severity": expected_severity,
                 "needs_manual_review": needs_review,
                 "area_sq_m": area_sq_m,
                 "coordinates": [coords],
@@ -240,27 +260,39 @@ def build_scene_data(scene_id: str):
     if not building_candidates or not lons or not lats:
         return None, None
 
-    building_candidates.sort(
-        key=lambda b: (SEV_WEIGHTS.get(b["damage_class"], 0), b["area_sq_m"]),
-        reverse=True,
-    )
+    assessments = [
+        BuildingAssessment(
+            building_id=b["building_id"],
+            damage_class=b["damage_class"],
+            damage_score=b["damage_score"],
+            area_sq_m=b["area_sq_m"],
+            confidence=b["confidence"],
+            class_probs=b["class_probs"],
+        )
+        for b in building_candidates
+    ]
+    ranked = compute_priority_scores(assessments, confidence_threshold=0.65)
+    coords_by_id = {b["building_id"]: b["coordinates"] for b in building_candidates}
+
     geo_features = []
-    for rank, b in enumerate(building_candidates, start=1):
-        b["priority_rank"] = rank
+    for a in ranked:
         geo_features.append({
             "type": "Feature",
             "properties": {
-                "building_id": b["building_id"],
-                "damage_class": b["damage_class"],
-                "damage_score": b["damage_score"],
-                "confidence": b["confidence"],
-                "needs_manual_review": b["needs_manual_review"],
-                "area_sq_m": b["area_sq_m"],
-                "priority_rank": b["priority_rank"],
+                "building_id": a.building_id,
+                "damage_class": a.damage_class,
+                "damage_score": a.damage_score,
+                "confidence": a.confidence,
+                "class_probs": a.class_probs,
+                "expected_severity": a.expected_severity,
+                "needs_manual_review": a.needs_manual_review,
+                "area_sq_m": a.area_sq_m,
+                "priority_rank": a.priority_rank,
+                "priority_score": a.priority_score,
             },
             "geometry": {
                 "type": "Polygon",
-                "coordinates": b["coordinates"],
+                "coordinates": coords_by_id[a.building_id],
             },
         })
 
