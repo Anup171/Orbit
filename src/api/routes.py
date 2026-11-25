@@ -17,6 +17,7 @@ import shutil
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from src.database.connection import get_db
@@ -384,3 +385,75 @@ def get_sample_triage():
         with open(sample_path, "r") as f:
             return json.load(f)
     raise HTTPException(status_code=404, detail="Sample triage GeoJSON not found")
+
+
+# ──────────────────────────────────────────────────────────────
+# Disaster Catalog & Satellite Imagery Endpoints
+# ──────────────────────────────────────────────────────────────
+
+@router.get("/disasters")
+def get_disasters():
+    """Returns the catalog of curated disaster scenes across all 10 global events."""
+    catalog_path = "data/disasters/catalog.json"
+    if os.path.exists(catalog_path):
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Disaster catalog not found")
+
+
+@router.get("/disasters/zones")
+def get_all_disaster_zones():
+    """Returns GeoJSON of all valid disaster scenes worldwide (~2,700+ zones)."""
+    zones_path = "data/disasters/all_zones.geojson"
+    if os.path.exists(zones_path):
+        with open(zones_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Global disaster zones not found")
+
+
+@router.get("/disasters/{scene_id}/info")
+def get_disaster_info(scene_id: str):
+    """Returns metadata, exact image_coords, and URLs for any disaster scene."""
+    catalog_path = "data/disasters/catalog.json"
+    if os.path.exists(catalog_path):
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            for item in json.load(f):
+                if item.get("id") == scene_id:
+                    return item
+    from src.data.disaster_catalog import build_scene_data
+    _, info = build_scene_data(scene_id)
+    if info:
+        return info
+    raise HTTPException(status_code=404, detail=f"Disaster scene {scene_id} not found")
+
+
+@router.get("/disasters/{scene_id}/geojson")
+def get_disaster_geojson(scene_id: str):
+    """Returns the real building polygon GeoJSON for any disaster scene."""
+    geojson_path = f"data/disasters/{scene_id}.geojson"
+    if os.path.exists(geojson_path):
+        with open(geojson_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    from src.data.disaster_catalog import build_scene_data
+    geojson_dict, _ = build_scene_data(scene_id)
+    if geojson_dict:
+        return geojson_dict
+    raise HTTPException(status_code=404, detail=f"Disaster geojson for {scene_id} not found")
+
+
+@router.get("/disasters/{scene_id}/pre-image")
+def get_disaster_pre_image(scene_id: str):
+    """Serves the actual pre-disaster Maxar satellite photo."""
+    img_path = f"data/raw/train/images/{scene_id}_pre_disaster.png"
+    if os.path.exists(img_path):
+        return FileResponse(img_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail=f"Pre-disaster image for {scene_id} not found")
+
+
+@router.get("/disasters/{scene_id}/post-image")
+def get_disaster_post_image(scene_id: str):
+    """Serves the actual post-disaster Maxar satellite photo showing real physical destruction."""
+    img_path = f"data/raw/train/images/{scene_id}_post_disaster.png"
+    if os.path.exists(img_path):
+        return FileResponse(img_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail=f"Post-disaster image for {scene_id} not found")

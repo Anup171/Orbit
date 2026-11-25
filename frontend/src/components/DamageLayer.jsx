@@ -34,12 +34,17 @@ const SOURCE_ROUTES = 'emergency-routes-src';
 const LAYER_ROUTE_CASING = 'emergency-routes-casing';
 const LAYER_ROUTE_LINE = 'emergency-routes-line';
 
+const SOURCE_GLOBAL_ZONES = 'global-disaster-zones-src';
+const LAYER_GLOBAL_ZONES = 'global-disaster-zones-circles';
+
 export default function DamageLayer({
   map,
   geojsonData,
   routeData,
+  globalZones,
   selectedBuilding,
   onSelectBuilding,
+  onSelectZone,
 }) {
   const popupRef = useRef(null);
 
@@ -81,7 +86,7 @@ export default function DamageLayer({
             'destroyed', DAMAGE_COLORS['destroyed'],
             '#888888',
           ],
-          'fill-opacity': 0.65,
+          'fill-opacity': 0.22,
         },
       });
 
@@ -263,6 +268,54 @@ export default function DamageLayer({
       }
     }
   }, [map, routeData]);
+
+  // Render Global Disaster Zones (all ~2,700+ xBD scenes worldwide)
+  useEffect(() => {
+    if (!map || !globalZones) return;
+
+    if (map.getSource(SOURCE_GLOBAL_ZONES)) {
+      map.getSource(SOURCE_GLOBAL_ZONES).setData(globalZones);
+    } else {
+      map.addSource(SOURCE_GLOBAL_ZONES, {
+        type: 'geojson',
+        data: globalZones,
+      });
+
+      map.addLayer({
+        id: LAYER_GLOBAL_ZONES,
+        type: 'circle',
+        source: SOURCE_GLOBAL_ZONES,
+        maxzoom: 15, // Hide individual zone dots once zoomed into a specific scene
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 2, 5, 8, 8, 13, 12],
+          'circle-color': [
+            'case',
+            ['>', ['get', 'destroyed'], 10], '#e74c3c',
+            ['>', ['get', 'major_damage'], 5], '#e67e22',
+            '#f1c40f',
+          ],
+          'circle-opacity': 0.85,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+
+      map.on('click', LAYER_GLOBAL_ZONES, (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const props = e.features[0].properties;
+        if (props?.scene_id && onSelectZone) {
+          onSelectZone(props.scene_id);
+        }
+      });
+
+      map.on('mouseenter', LAYER_GLOBAL_ZONES, () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', LAYER_GLOBAL_ZONES, () => {
+        map.getCanvas().style.cursor = '';
+      });
+    }
+  }, [map, globalZones, onSelectZone]);
 
   // Synchronize map selection when selectedBuilding changes from RoutePanel
   useEffect(() => {

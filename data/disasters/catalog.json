@@ -1,0 +1,1412 @@
+[
+  {
+    "id": "guatemala-volcano_00000025",
+    "event": "guatemala-volcano",
+    "name": "\ud83c\udf0b Volc\u00e1n de Fuego Pyroclastic Flow (00000025)",
+    "location": "Escuintla / Alotenango, Guatemala",
+    "disaster_type": "volcano",
+    "description": "High-velocity volcanic pyroclastic flow and hot ash burying villages.",
+    "icon": "\ud83c\udf0b",
+    "center": [
+      -90.83007596471269,
+      14.407617349826436
+    ],
+    "bbox": [
+      -90.82936763032767,
+      14.40533645016648,
+      -90.8277393712622,
+      14.40987796600038
+    ],
+    "image_coords": [
+      [
+        -90.83238192374229,
+        14.40990771268795
+      ],
+      [
+        -90.82772607462803,
+        14.40986489474265
+      ],
+      [
+        -90.82777000568309,
+        14.405326986964923
+      ],
+      [
+        -90.83242585479736,
+        14.405369804910222
+      ]
+    ],
+    "total_buildings": 201,
+    "damage_breakdown": {
+      "destroyed": 21,
+      "major-damage": 6,
+      "minor-damage": 0,
+      "no-damage": 174
+    },
+    "pre_image_url": "/api/v1/disasters/guatemala-volcano_00000025/pre-image",
+    "post_image_url": "/api/v1/disasters/guatemala-volcano_00000025/post-image",
+    "geojson_url": "/api/v1/disasters/guatemala-volcano_00000025/geojson"
+  },
+  {
+    "id": "guatemala-volcano_00000019",
+    "event": "guatemala-volcano",
+    "name": "\ud83c\udf0b Volc\u00e1n de Fuego Pyroclastic Flow (00000019)",
+    "location": "Escuintla / Alotenango, Guatemala",
+    "disaster_type": "volcano",
+    "description": "High-velocity volcanic pyroclastic flow and hot ash burying villages.",
+    "icon": "\ud83c\udf0b",
+    "center": [
+      -90.83068305288324,
+      14.43199262744709
+    ],
+    "bbox": [
+      -90.83240099420901,
+      14.4297362529831,
+      -90.82910721889606,
+      14.43285982844729
+    ],
+    "image_coords": [
+      [
+        -90.83298881281564,
+        14.434282574021026
+      ],
+      [
+        -90.82833336278226,
+        14.434239740543768
+      ],
+      [
+        -90.82837729295083,
+        14.429702680873156
+      ],
+      [
+        -90.83303274298422,
+        14.429745514350413
+      ]
+    ],
+    "total_buildings": 22,
+    "damage_breakdown": {
+      "destroyed": 1,
+      "major-damage": 3,
+      "minor-damage": 1,
+      "no-damage": 17
+    },
+    "pre_image_url": "/api/v1/disasters/guatemala-volcano_00000019/pre-image",
+    "post_image_url": "/api/v1/disasters/guatemala-volcano_00000019/post-image",
+    "geojson_url": "/api/v1/disasters/guatemala-volcano_00000019/geojson"
+  },
+  {
+    "id": "guatemala-volcano_00000010",
+    "event": "guatemala-volcano",
+    "name": "\ud83c\udf0b Volc\u00e1n de Fuego Pyroclastic Flow (00000010)",
+    "location": "Escuintla / Alotenango, Guatemala",
+    "disaster_type": "volcano",
+    "description": "High-velocity volcanic pyroclastic flow and hot ash burying villages.",
+    "icon": "\ud83c\udf0b",
+    "center": [
+      -90.81658394268825,
+      14.445474754160132
+    ],
+    "bbox": [
+      -90.81435182731316,
+      14.44434832379007,
+      -90.81428777749217,
+      14.44439153840887
+    ],
+    "image_coords": [
+      [
+        -90.81888961656848,
+        14.44776485097795
+      ],
+      [
+        -90.81423394618304,
+        14.4477216580525
+      ],
+      [
+        -90.81427826880801,
+        14.443184657342314
+      ],
+      [
+        -90.81893393919346,
+        14.443227850267766
+      ]
+    ],
+    "total_buildings": 2,
+    "damage_breakdown": {
+      "destroyed": 2,
+      "major-damage": 0,
+      "minor-damage": 0,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/guatemala-volcano_00000010/pre-image",
+    "post_image_url": "/api/v1/disasters/guatemala-volcano_00000010/post-image",
+    "geojson_url": "/api/v1/disasters/guatemala-volcano_00000010/geojson"
+  },
+  {
+    "id": "hurricane-florence_00000485",
+    "event": "hurricane-florence",
+    "name": "\ud83c\udf00 Hurricane Florence Riverine Flooding (00000485)",
+    "location": "North & South Carolina, USA",
+    "disaster_type": "flooding",
+    "description": "Record-breaking storm surge and prolonged inland river flooding.",
+    "icon": "\ud83c\udf00",
+    "center": [
+      -77.91265352929821,
+      34.77840836501178
+    ],
+    "bbox": [
+      -77.91516257803475,
+      34.77624567596736,
+      -77.91003810163144,
+      34.78056880757494
+    ],
+    "image_coords": [
+      [
+        -77.9152797314203,
+        34.78045301124769
+      ],
+      [
+        -77.91017547857554,
+        34.780575235063985
+      ],
+      [
+        -77.91002732717614,
+        34.77636371877587
+      ],
+      [
+        -77.9151315800209,
+        34.77624149495957
+      ]
+    ],
+    "total_buildings": 66,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 66,
+      "minor-damage": 0,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-florence_00000485/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-florence_00000485/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-florence_00000485/geojson"
+  },
+  {
+    "id": "hurricane-florence_00000442",
+    "event": "hurricane-florence",
+    "name": "\ud83c\udf00 Hurricane Florence Riverine Flooding (00000442)",
+    "location": "North & South Carolina, USA",
+    "disaster_type": "flooding",
+    "description": "Record-breaking storm surge and prolonged inland river flooding.",
+    "icon": "\ud83c\udf00",
+    "center": [
+      -77.90769715945346,
+      34.78274200477445
+    ],
+    "bbox": [
+      -77.91022867206685,
+      34.78075103565271,
+      -77.90514555388728,
+      34.78485467948711
+    ],
+    "image_coords": [
+      [
+        -77.91032340897897,
+        34.78478675197143
+      ],
+      [
+        -77.90521887038437,
+        34.784908785010266
+      ],
+      [
+        -77.90507090992796,
+        34.78069725757746
+      ],
+      [
+        -77.91017544852255,
+        34.78057522453862
+      ]
+    ],
+    "total_buildings": 63,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 61,
+      "minor-damage": 2,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-florence_00000442/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-florence_00000442/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-florence_00000442/geojson"
+  },
+  {
+    "id": "hurricane-florence_00000433",
+    "event": "hurricane-florence",
+    "name": "\ud83c\udf00 Hurricane Florence Riverine Flooding (00000433)",
+    "location": "North & South Carolina, USA",
+    "disaster_type": "flooding",
+    "description": "Record-breaking storm surge and prolonged inland river flooding.",
+    "icon": "\ud83c\udf00",
+    "center": [
+      -77.91760936698367,
+      34.77407454850515
+    ],
+    "bbox": [
+      -77.92019705149484,
+      34.77195841991715,
+      -77.91511595806386,
+      34.77624127269134
+    ],
+    "image_coords": [
+      [
+        -77.92023557996794,
+        34.77611906807033
+      ],
+      [
+        -77.91513156118675,
+        34.77624150211637
+      ],
+      [
+        -77.91498315399942,
+        34.77203002893997
+      ],
+      [
+        -77.9200871727806,
+        34.771907594893925
+      ]
+    ],
+    "total_buildings": 61,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 61,
+      "minor-damage": 0,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-florence_00000433/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-florence_00000433/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-florence_00000433/geojson"
+  },
+  {
+    "id": "hurricane-harvey_00000104",
+    "event": "hurricane-harvey",
+    "name": "\ud83c\udf27\ufe0f Hurricane Harvey Extreme Flooding (00000104)",
+    "location": "Houston Metro Area, Texas, USA",
+    "disaster_type": "flooding",
+    "description": "Historic 50+ inches of rainfall causing deep urban inundation.",
+    "icon": "\ud83c\udf27\ufe0f",
+    "center": [
+      -95.63269869859474,
+      29.847782900262267
+    ],
+    "bbox": [
+      -95.63522402972943,
+      29.84558377462744,
+      -95.63017777736245,
+      29.8499854635231
+    ],
+    "image_coords": [
+      [
+        -95.63522737586192,
+        29.849888634095535
+      ],
+      [
+        -95.6302831658479,
+        29.849987272149843
+      ],
+      [
+        -95.63017002132757,
+        29.845677166428995
+      ],
+      [
+        -95.63511423134159,
+        29.845578528374688
+      ]
+    ],
+    "total_buildings": 302,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 226,
+      "minor-damage": 76,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-harvey_00000104/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-harvey_00000104/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-harvey_00000104/geojson"
+  },
+  {
+    "id": "hurricane-harvey_00000132",
+    "event": "hurricane-harvey",
+    "name": "\ud83c\udf27\ufe0f Hurricane Harvey Extreme Flooding (00000132)",
+    "location": "Houston Metro Area, Texas, USA",
+    "disaster_type": "flooding",
+    "description": "Historic 50+ inches of rainfall causing deep urban inundation.",
+    "icon": "\ud83c\udf27\ufe0f",
+    "center": [
+      -95.63281186032943,
+      29.852093005271158
+    ],
+    "bbox": [
+      -95.63533757265994,
+      29.84989786536909,
+      -95.63029125709362,
+      29.8542908325062
+    ],
+    "image_coords": [
+      [
+        -95.63534066212439,
+        29.85419872873012
+      ],
+      [
+        -95.63039623931823,
+        29.854297385287616
+      ],
+      [
+        -95.63028305853446,
+        29.8499872818122
+      ],
+      [
+        -95.63522748134062,
+        29.849888625254703
+      ]
+    ],
+    "total_buildings": 263,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 230,
+      "minor-damage": 33,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-harvey_00000132/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-harvey_00000132/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-harvey_00000132/geojson"
+  },
+  {
+    "id": "hurricane-harvey_00000137",
+    "event": "hurricane-harvey",
+    "name": "\ud83c\udf27\ufe0f Hurricane Harvey Extreme Flooding (00000137)",
+    "location": "Houston Metro Area, Texas, USA",
+    "disaster_type": "flooding",
+    "description": "Historic 50+ inches of rainfall causing deep urban inundation.",
+    "icon": "\ud83c\udf27\ufe0f",
+    "center": [
+      -95.64247351092044,
+      29.843275185284853
+    ],
+    "bbox": [
+      -95.6449796682431,
+      29.84107574896397,
+      -95.63997288467124,
+      29.84547799533107
+    ],
+    "image_coords": [
+      [
+        -95.64500225421888,
+        29.845380733751426
+      ],
+      [
+        -95.6400582968959,
+        29.84547971358811
+      ],
+      [
+        -95.639944767622,
+        29.84116963681828
+      ],
+      [
+        -95.64488872494499,
+        29.841070656981596
+      ]
+    ],
+    "total_buildings": 252,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 233,
+      "minor-damage": 19,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-harvey_00000137/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-harvey_00000137/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-harvey_00000137/geojson"
+  },
+  {
+    "id": "hurricane-matthew_00000156",
+    "event": "hurricane-matthew",
+    "name": "\ud83c\udf0a Hurricane Matthew Coastal Destruction (00000156)",
+    "location": "Les Cayes / Tiburon Peninsula, Haiti",
+    "disaster_type": "hurricane",
+    "description": "Catastrophic flooding and structural roof collapses across coastal towns.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -73.75526408014177,
+      18.186713819030945
+    ],
+    "bbox": [
+      -73.75762499813797,
+      18.18458346501355,
+      -73.75290152067433,
+      18.18896574127162
+    ],
+    "image_coords": [
+      [
+        -73.75759978118067,
+        18.188976827435297
+      ],
+      [
+        -73.75289647383102,
+        18.18894633761126
+      ],
+      [
+        -73.75292837910287,
+        18.184450810626593
+      ],
+      [
+        -73.75763168645253,
+        18.18448130045063
+      ]
+    ],
+    "total_buildings": 641,
+    "damage_breakdown": {
+      "destroyed": 148,
+      "major-damage": 285,
+      "minor-damage": 188,
+      "no-damage": 20
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-matthew_00000156/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-matthew_00000156/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-matthew_00000156/geojson"
+  },
+  {
+    "id": "hurricane-matthew_00000158",
+    "event": "hurricane-matthew",
+    "name": "\ud83c\udf0a Hurricane Matthew Coastal Destruction (00000158)",
+    "location": "Les Cayes / Tiburon Peninsula, Haiti",
+    "disaster_type": "hurricane",
+    "description": "Catastrophic flooding and structural roof collapses across coastal towns.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -73.74641548717345,
+      18.19364509400976
+    ],
+    "bbox": [
+      -73.74876837598684,
+      18.19336008834553,
+      -73.74405249452354,
+      18.1959076605854
+    ],
+    "image_coords": [
+      [
+        -73.74875061682019,
+        18.1959076747581
+      ],
+      [
+        -73.74404822187876,
+        18.195876965092967
+      ],
+      [
+        -73.74408035752671,
+        18.19138251326142
+      ],
+      [
+        -73.74878275246814,
+        18.191413222926553
+      ]
+    ],
+    "total_buildings": 535,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 441,
+      "minor-damage": 94,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-matthew_00000158/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-matthew_00000158/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-matthew_00000158/geojson"
+  },
+  {
+    "id": "hurricane-matthew_00000126",
+    "event": "hurricane-matthew",
+    "name": "\ud83c\udf0a Hurricane Matthew Coastal Destruction (00000126)",
+    "location": "Les Cayes / Tiburon Peninsula, Haiti",
+    "disaster_type": "hurricane",
+    "description": "Catastrophic flooding and structural roof collapses across coastal towns.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -74.12082234888291,
+      18.630705312070198
+    ],
+    "bbox": [
+      -74.12317337269423,
+      18.6297741476124,
+      -74.11846289892691,
+      18.63281499269436
+    ],
+    "image_coords": [
+      [
+        -74.12316575196127,
+        18.632961355760216
+      ],
+      [
+        -74.11845584374166,
+        18.632939341586
+      ],
+      [
+        -74.11847894580457,
+        18.628449268380184
+      ],
+      [
+        -74.12318885402418,
+        18.6284712825544
+      ]
+    ],
+    "total_buildings": 288,
+    "damage_breakdown": {
+      "destroyed": 99,
+      "major-damage": 74,
+      "minor-damage": 99,
+      "no-damage": 16
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-matthew_00000126/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-matthew_00000126/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-matthew_00000126/geojson"
+  },
+  {
+    "id": "hurricane-michael_00000247",
+    "event": "hurricane-michael",
+    "name": "\ud83c\udf2a\ufe0f Hurricane Michael Cat 5 Landfall (00000247)",
+    "location": "Mexico Beach / Panama City, FL, USA",
+    "disaster_type": "hurricane",
+    "description": "Category 5 hurricane with 160 mph winds and extreme storm surge.",
+    "icon": "\ud83c\udf2a\ufe0f",
+    "center": [
+      -85.61768796683792,
+      30.150561466042657
+    ],
+    "bbox": [
+      -85.62018422906144,
+      30.14843177343194,
+      -85.61518615513434,
+      30.15272488487285
+    ],
+    "image_coords": [
+      [
+        -85.62013428475068,
+        30.152739624835597
+      ],
+      [
+        -85.61518164390831,
+        30.152687470890896
+      ],
+      [
+        -85.61524164892516,
+        30.148383307249716
+      ],
+      [
+        -85.62019428976751,
+        30.148435461194413
+      ]
+    ],
+    "total_buildings": 178,
+    "damage_breakdown": {
+      "destroyed": 20,
+      "major-damage": 45,
+      "minor-damage": 60,
+      "no-damage": 53
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-michael_00000247/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-michael_00000247/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-michael_00000247/geojson"
+  },
+  {
+    "id": "hurricane-michael_00000133",
+    "event": "hurricane-michael",
+    "name": "\ud83c\udf2a\ufe0f Hurricane Michael Cat 5 Landfall (00000133)",
+    "location": "Mexico Beach / Panama City, FL, USA",
+    "disaster_type": "hurricane",
+    "description": "Category 5 hurricane with 160 mph winds and extreme storm surge.",
+    "icon": "\ud83c\udf2a\ufe0f",
+    "center": [
+      -85.6222216054613,
+      30.180742676116886
+    ],
+    "bbox": [
+      -85.62470221883326,
+      30.17866640077795,
+      -85.61972987336621,
+      30.18292075009075
+    ],
+    "image_coords": [
+      [
+        -85.62466873523326,
+        30.182920770923495
+      ],
+      [
+        -85.61971456617749,
+        30.182868728068236
+      ],
+      [
+        -85.61977447568934,
+        30.17856458131028
+      ],
+      [
+        -85.6247286447451,
+        30.178616624165535
+      ]
+    ],
+    "total_buildings": 226,
+    "damage_breakdown": {
+      "destroyed": 11,
+      "major-damage": 19,
+      "minor-damage": 99,
+      "no-damage": 97
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-michael_00000133/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-michael_00000133/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-michael_00000133/geojson"
+  },
+  {
+    "id": "hurricane-michael_00000299",
+    "event": "hurricane-michael",
+    "name": "\ud83c\udf2a\ufe0f Hurricane Michael Cat 5 Landfall (00000299)",
+    "location": "Mexico Beach / Panama City, FL, USA",
+    "disaster_type": "hurricane",
+    "description": "Category 5 hurricane with 160 mph winds and extreme storm surge.",
+    "icon": "\ud83c\udf2a\ufe0f",
+    "center": [
+      -85.64722772210266,
+      30.163783742803425
+    ],
+    "bbox": [
+      -85.64973331823548,
+      30.16161352580269,
+      -85.64477587141049,
+      30.16595744495957
+    ],
+    "image_coords": [
+      [
+        -85.64967500600045,
+        30.165961381612938
+      ],
+      [
+        -85.64472166456953,
+        30.165910315475053
+      ],
+      [
+        -85.64478043820486,
+        30.161606103993908
+      ],
+      [
+        -85.64973377963578,
+        30.161657170131793
+      ]
+    ],
+    "total_buildings": 202,
+    "damage_breakdown": {
+      "destroyed": 10,
+      "major-damage": 33,
+      "minor-damage": 54,
+      "no-damage": 105
+    },
+    "pre_image_url": "/api/v1/disasters/hurricane-michael_00000299/pre-image",
+    "post_image_url": "/api/v1/disasters/hurricane-michael_00000299/post-image",
+    "geojson_url": "/api/v1/disasters/hurricane-michael_00000299/geojson"
+  },
+  {
+    "id": "mexico-earthquake_00000052",
+    "event": "mexico-earthquake",
+    "name": "\ud83c\udfda\ufe0f Central Mexico Puebla Earthquake (00000052)",
+    "location": "Puebla / Mexico City Region, Mexico",
+    "disaster_type": "earthquake",
+    "description": "7.1 magnitude earthquake causing widespread structural collapses.",
+    "icon": "\ud83c\udfda\ufe0f",
+    "center": [
+      -99.14601710912889,
+      19.32481955983907
+    ],
+    "bbox": [
+      -99.14837700283039,
+      19.32258161907835,
+      -99.14366027579202,
+      19.32706185214213
+    ],
+    "image_coords": [
+      [
+        -99.14837925493515,
+        19.327058204875435
+      ],
+      [
+        -99.14365895529652,
+        19.327061985381988
+      ],
+      [
+        -99.14365496332263,
+        19.32258091480271
+      ],
+      [
+        -99.14837526296125,
+        19.322577134296157
+      ]
+    ],
+    "total_buildings": 854,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 5,
+      "minor-damage": 12,
+      "no-damage": 837
+    },
+    "pre_image_url": "/api/v1/disasters/mexico-earthquake_00000052/pre-image",
+    "post_image_url": "/api/v1/disasters/mexico-earthquake_00000052/post-image",
+    "geojson_url": "/api/v1/disasters/mexico-earthquake_00000052/geojson"
+  },
+  {
+    "id": "mexico-earthquake_00000053",
+    "event": "mexico-earthquake",
+    "name": "\ud83c\udfda\ufe0f Central Mexico Puebla Earthquake (00000053)",
+    "location": "Puebla / Mexico City Region, Mexico",
+    "disaster_type": "earthquake",
+    "description": "7.1 magnitude earthquake causing widespread structural collapses.",
+    "icon": "\ud83c\udfda\ufe0f",
+    "center": [
+      -99.14129682226184,
+      19.324823281348415
+    ],
+    "bbox": [
+      -99.14365879035142,
+      19.32258609777399,
+      -99.1406284514255,
+      19.32706433730131
+    ],
+    "image_coords": [
+      [
+        -99.143658901285,
+        19.327061979288978
+      ],
+      [
+        -99.13893862445516,
+        19.327065655603764
+      ],
+      [
+        -99.13893474323869,
+        19.322584583407856
+      ],
+      [
+        -99.14365502006851,
+        19.32258090709307
+      ]
+    ],
+    "total_buildings": 412,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 0,
+      "minor-damage": 12,
+      "no-damage": 400
+    },
+    "pre_image_url": "/api/v1/disasters/mexico-earthquake_00000053/pre-image",
+    "post_image_url": "/api/v1/disasters/mexico-earthquake_00000053/post-image",
+    "geojson_url": "/api/v1/disasters/mexico-earthquake_00000053/geojson"
+  },
+  {
+    "id": "mexico-earthquake_00000092",
+    "event": "mexico-earthquake",
+    "name": "\ud83c\udfda\ufe0f Central Mexico Puebla Earthquake (00000092)",
+    "location": "Puebla / Mexico City Region, Mexico",
+    "disaster_type": "earthquake",
+    "description": "7.1 magnitude earthquake causing widespread structural collapses.",
+    "icon": "\ud83c\udfda\ufe0f",
+    "center": [
+      -99.1412583481671,
+      19.280012428098576
+    ],
+    "bbox": [
+      -99.14361980461932,
+      19.27777485773104,
+      -99.1406280595296,
+      19.28225194849735
+    ],
+    "image_coords": [
+      [
+        -99.14361978660939,
+        19.28225114020098
+      ],
+      [
+        -99.13890078000549,
+        19.28225481098248
+      ],
+      [
+        -99.13889690972482,
+        19.277773715996176
+      ],
+      [
+        -99.14361591632871,
+        19.277770045214673
+      ]
+    ],
+    "total_buildings": 342,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 0,
+      "minor-damage": 12,
+      "no-damage": 330
+    },
+    "pre_image_url": "/api/v1/disasters/mexico-earthquake_00000092/pre-image",
+    "post_image_url": "/api/v1/disasters/mexico-earthquake_00000092/post-image",
+    "geojson_url": "/api/v1/disasters/mexico-earthquake_00000092/geojson"
+  },
+  {
+    "id": "midwest-flooding_00000340",
+    "event": "midwest-flooding",
+    "name": "\ud83c\udf0a Midwest Levee Breach Flooding (00000340)",
+    "location": "Missouri / Mississippi River Basin, USA",
+    "disaster_type": "flooding",
+    "description": "Severe springtime river swelling and structural submergence.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -96.27626241276164,
+      36.14270745112064
+    ],
+    "bbox": [
+      -96.2784120943726,
+      36.14057670623075,
+      -96.27418233676372,
+      36.14367263838441
+    ],
+    "image_coords": [
+      [
+        -96.27876799015225,
+        36.14485709685914
+      ],
+      [
+        -96.27361220350919,
+        36.14473975986599
+      ],
+      [
+        -96.27375683537103,
+        36.14055780538214
+      ],
+      [
+        -96.2789126220141,
+        36.140675142375294
+      ]
+    ],
+    "total_buildings": 24,
+    "damage_breakdown": {
+      "destroyed": 6,
+      "major-damage": 13,
+      "minor-damage": 5,
+      "no-damage": 0
+    },
+    "pre_image_url": "/api/v1/disasters/midwest-flooding_00000340/pre-image",
+    "post_image_url": "/api/v1/disasters/midwest-flooding_00000340/post-image",
+    "geojson_url": "/api/v1/disasters/midwest-flooding_00000340/geojson"
+  },
+  {
+    "id": "midwest-flooding_00000172",
+    "event": "midwest-flooding",
+    "name": "\ud83c\udf0a Midwest Levee Breach Flooding (00000172)",
+    "location": "Missouri / Mississippi River Basin, USA",
+    "disaster_type": "flooding",
+    "description": "Severe springtime river swelling and structural submergence.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -96.34227728970416,
+      36.26358649973291
+    ],
+    "bbox": [
+      -96.34481930369293,
+      36.26167972775151,
+      -96.33971199874138,
+      36.26573096287388
+    ],
+    "image_coords": [
+      [
+        -96.34478725303374,
+        36.26573391343254
+      ],
+      [
+        -96.33962562783911,
+        36.265619142226164
+      ],
+      [
+        -96.33976732637456,
+        36.26143908603328
+      ],
+      [
+        -96.34492895156919,
+        36.26155385723966
+      ]
+    ],
+    "total_buildings": 48,
+    "damage_breakdown": {
+      "destroyed": 3,
+      "major-damage": 4,
+      "minor-damage": 10,
+      "no-damage": 31
+    },
+    "pre_image_url": "/api/v1/disasters/midwest-flooding_00000172/pre-image",
+    "post_image_url": "/api/v1/disasters/midwest-flooding_00000172/post-image",
+    "geojson_url": "/api/v1/disasters/midwest-flooding_00000172/geojson"
+  },
+  {
+    "id": "midwest-flooding_00000181",
+    "event": "midwest-flooding",
+    "name": "\ud83c\udf0a Midwest Levee Breach Flooding (00000181)",
+    "location": "Missouri / Mississippi River Basin, USA",
+    "disaster_type": "flooding",
+    "description": "Severe springtime river swelling and structural submergence.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      -96.25515567005175,
+      36.24269706701105
+    ],
+    "bbox": [
+      -96.25763579212263,
+      36.24106290187154,
+      -96.25250533121837,
+      36.2448456434203
+    ],
+    "image_coords": [
+      [
+        -96.2576626228605,
+        36.24484629381468
+      ],
+      [
+        -96.25250248501501,
+        36.24472781759369
+      ],
+      [
+        -96.25264871724302,
+        36.24054784020742
+      ],
+      [
+        -96.2578088550885,
+        36.24066631642842
+      ]
+    ],
+    "total_buildings": 32,
+    "damage_breakdown": {
+      "destroyed": 0,
+      "major-damage": 12,
+      "minor-damage": 1,
+      "no-damage": 19
+    },
+    "pre_image_url": "/api/v1/disasters/midwest-flooding_00000181/pre-image",
+    "post_image_url": "/api/v1/disasters/midwest-flooding_00000181/post-image",
+    "geojson_url": "/api/v1/disasters/midwest-flooding_00000181/geojson"
+  },
+  {
+    "id": "palu-tsunami_00000118",
+    "event": "palu-tsunami",
+    "name": "\ud83c\udf0a Palu Earthquake & Tsunami (00000118)",
+    "location": "Central Sulawesi, Palu, Indonesia",
+    "disaster_type": "tsunami",
+    "description": "7.5 magnitude earthquake, tsunami wave, and massive soil liquefaction.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      119.84296850407668,
+      -0.9042290155682124
+    ],
+    "bbox": [
+      119.840683263261,
+      -0.9065315231814371,
+      119.8452605414011,
+      -0.9019218775350212
+    ],
+    "image_coords": [
+      [
+        119.84067646437799,
+        -0.9019254344391003
+      ],
+      [
+        119.84525695415526,
+        -0.9019218201721949
+      ],
+      [
+        119.84526054377538,
+        -0.9065325966973246
+      ],
+      [
+        119.8406800539981,
+        -0.90653621096423
+      ]
+    ],
+    "total_buildings": 1843,
+    "damage_breakdown": {
+      "destroyed": 1540,
+      "major-damage": 9,
+      "minor-damage": 0,
+      "no-damage": 294
+    },
+    "pre_image_url": "/api/v1/disasters/palu-tsunami_00000118/pre-image",
+    "post_image_url": "/api/v1/disasters/palu-tsunami_00000118/post-image",
+    "geojson_url": "/api/v1/disasters/palu-tsunami_00000118/geojson"
+  },
+  {
+    "id": "palu-tsunami_00000182",
+    "event": "palu-tsunami",
+    "name": "\ud83c\udf0a Palu Earthquake & Tsunami (00000182)",
+    "location": "Central Sulawesi, Palu, Indonesia",
+    "disaster_type": "tsunami",
+    "description": "7.5 magnitude earthquake, tsunami wave, and massive soil liquefaction.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      119.91714611280136,
+      -0.9411256928368155
+    ],
+    "bbox": [
+      119.9148602704769,
+      -0.9434271670786025,
+      119.9194365374153,
+      -0.938818418155941
+    ],
+    "image_coords": [
+      [
+        119.91485389990717,
+        -0.9388222034618791
+      ],
+      [
+        119.91943449331217,
+        -0.9388183475339279
+      ],
+      [
+        119.91943832569554,
+        -0.943429182211752
+      ],
+      [
+        119.91485773229054,
+        -0.9434330381397031
+      ]
+    ],
+    "total_buildings": 614,
+    "damage_breakdown": {
+      "destroyed": 511,
+      "major-damage": 24,
+      "minor-damage": 0,
+      "no-damage": 79
+    },
+    "pre_image_url": "/api/v1/disasters/palu-tsunami_00000182/pre-image",
+    "post_image_url": "/api/v1/disasters/palu-tsunami_00000182/post-image",
+    "geojson_url": "/api/v1/disasters/palu-tsunami_00000182/geojson"
+  },
+  {
+    "id": "palu-tsunami_00000125",
+    "event": "palu-tsunami",
+    "name": "\ud83c\udf0a Palu Earthquake & Tsunami (00000125)",
+    "location": "Central Sulawesi, Palu, Indonesia",
+    "disaster_type": "tsunami",
+    "description": "7.5 magnitude earthquake, tsunami wave, and massive soil liquefaction.",
+    "icon": "\ud83c\udf0a",
+    "center": [
+      119.84754898461185,
+      -0.9042253990942495
+    ],
+    "bbox": [
+      119.8452628764458,
+      -0.9065278997563325,
+      119.8498410155743,
+      -0.90191929183866
+    ],
+    "image_coords": [
+      [
+        119.84525695107544,
+        -0.9019218293796115
+      ],
+      [
+        119.84983742269327,
+        -0.9019182094271313
+      ],
+      [
+        119.84984101814825,
+        -0.9065289688088873
+      ],
+      [
+        119.84526054653043,
+        -0.9065325887613676
+      ]
+    ],
+    "total_buildings": 966,
+    "damage_breakdown": {
+      "destroyed": 197,
+      "major-damage": 53,
+      "minor-damage": 0,
+      "no-damage": 716
+    },
+    "pre_image_url": "/api/v1/disasters/palu-tsunami_00000125/pre-image",
+    "post_image_url": "/api/v1/disasters/palu-tsunami_00000125/post-image",
+    "geojson_url": "/api/v1/disasters/palu-tsunami_00000125/geojson"
+  },
+  {
+    "id": "santa-rosa-wildfire_00000084",
+    "event": "santa-rosa-wildfire",
+    "name": "\ud83d\udd25 Santa Rosa Wildfire (Tubbs Fire) (00000084)",
+    "location": "Santa Rosa, California, USA",
+    "disaster_type": "wildfire",
+    "description": "Residential subdivisions incinerated to ash by intense wildfire storm.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -122.74906123817449,
+      38.481752445202275
+    ],
+    "bbox": [
+      -122.7516978518668,
+      38.47969298779442,
+      -122.7464345050735,
+      38.48382369008671
+    ],
+    "image_coords": [
+      [
+        -122.75168366125624,
+        38.48382502932545
+      ],
+      [
+        -122.74642451724904,
+        38.48381377279981
+      ],
+      [
+        -122.74643881509274,
+        38.479679861079106
+      ],
+      [
+        -122.75169795909994,
+        38.479691117604744
+      ]
+    ],
+    "total_buildings": 218,
+    "damage_breakdown": {
+      "destroyed": 207,
+      "major-damage": 0,
+      "minor-damage": 0,
+      "no-damage": 11
+    },
+    "pre_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000084/pre-image",
+    "post_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000084/post-image",
+    "geojson_url": "/api/v1/disasters/santa-rosa-wildfire_00000084/geojson"
+  },
+  {
+    "id": "santa-rosa-wildfire_00000063",
+    "event": "santa-rosa-wildfire",
+    "name": "\ud83d\udd25 Santa Rosa Wildfire (Tubbs Fire) (00000063)",
+    "location": "Santa Rosa, California, USA",
+    "disaster_type": "wildfire",
+    "description": "Residential subdivisions incinerated to ash by intense wildfire storm.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -122.7490898985471,
+      38.47348461329126
+    ],
+    "bbox": [
+      -122.7517255618508,
+      38.47141620792964,
+      -122.7464597776652,
+      38.47555664702832
+    ],
+    "image_coords": [
+      [
+        -122.7517120209995,
+        38.475557204280385
+      ],
+      [
+        -122.74645344888518,
+        38.475545941454946
+      ],
+      [
+        -122.74646777609469,
+        38.47141202230214
+      ],
+      [
+        -122.75172634820902,
+        38.47142328512757
+      ]
+    ],
+    "total_buildings": 236,
+    "damage_breakdown": {
+      "destroyed": 206,
+      "major-damage": 1,
+      "minor-damage": 0,
+      "no-damage": 29
+    },
+    "pre_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000063/pre-image",
+    "post_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000063/post-image",
+    "geojson_url": "/api/v1/disasters/santa-rosa-wildfire_00000063/geojson"
+  },
+  {
+    "id": "santa-rosa-wildfire_00000155",
+    "event": "santa-rosa-wildfire",
+    "name": "\ud83d\udd25 Santa Rosa Wildfire (Tubbs Fire) (00000155)",
+    "location": "Santa Rosa, California, USA",
+    "disaster_type": "wildfire",
+    "description": "Residential subdivisions incinerated to ash by intense wildfire storm.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -122.75433443569536,
+      38.47762967626409
+    ],
+    "bbox": [
+      -122.7569705373077,
+      38.47556277269025,
+      -122.7517052961268,
+      38.47970212998852
+    ],
+    "image_coords": [
+      [
+        -122.75695685749696,
+        38.47970215122979
+      ],
+      [
+        -122.75169798790083,
+        38.47969112203613
+      ],
+      [
+        -122.75171201389375,
+        38.475557201298386
+      ],
+      [
+        -122.75697088348988,
+        38.475568230492044
+      ]
+    ],
+    "total_buildings": 288,
+    "damage_breakdown": {
+      "destroyed": 203,
+      "major-damage": 0,
+      "minor-damage": 1,
+      "no-damage": 84
+    },
+    "pre_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000155/pre-image",
+    "post_image_url": "/api/v1/disasters/santa-rosa-wildfire_00000155/post-image",
+    "geojson_url": "/api/v1/disasters/santa-rosa-wildfire_00000155/geojson"
+  },
+  {
+    "id": "socal-fire_00001075",
+    "event": "socal-fire",
+    "name": "\ud83d\udd25 SoCal Woolsey / Thomas Wildfire (00001075)",
+    "location": "Malibu / Ventura County, CA, USA",
+    "disaster_type": "wildfire",
+    "description": "Rapidly spreading brush fire destroying hillside residential structures.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -118.77555385872927,
+      34.049477586311
+    ],
+    "bbox": [
+      -118.7781372109531,
+      34.04737307775319,
+      -118.7729841469308,
+      34.05155868243315
+    ],
+    "image_coords": [
+      [
+        -118.77813715742586,
+        34.051554520303355
+      ],
+      [
+        -118.77305871695478,
+        34.05162789523409
+      ],
+      [
+        -118.77297056003268,
+        34.047400652318636
+      ],
+      [
+        -118.77804900050376,
+        34.0473272773879
+      ]
+    ],
+    "total_buildings": 64,
+    "damage_breakdown": {
+      "destroyed": 53,
+      "major-damage": 0,
+      "minor-damage": 3,
+      "no-damage": 8
+    },
+    "pre_image_url": "/api/v1/disasters/socal-fire_00001075/pre-image",
+    "post_image_url": "/api/v1/disasters/socal-fire_00001075/post-image",
+    "geojson_url": "/api/v1/disasters/socal-fire_00001075/geojson"
+  },
+  {
+    "id": "socal-fire_00000114",
+    "event": "socal-fire",
+    "name": "\ud83d\udd25 SoCal Woolsey / Thomas Wildfire (00000114)",
+    "location": "Malibu / Ventura County, CA, USA",
+    "disaster_type": "wildfire",
+    "description": "Rapidly spreading brush fire destroying hillside residential structures.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -118.87456927462429,
+      34.09163081640027
+    ],
+    "bbox": [
+      -118.8769486120363,
+      34.08950454009079,
+      -118.8735041280414,
+      34.09372379174087
+    ],
+    "image_coords": [
+      [
+        -118.87715631947107,
+        34.09370558838775
+      ],
+      [
+        -118.87207547609862,
+        34.093783161451434
+      ],
+      [
+        -118.8719822297775,
+        34.08955604441279
+      ],
+      [
+        -118.87706307314996,
+        34.0894784713491
+      ]
+    ],
+    "total_buildings": 47,
+    "damage_breakdown": {
+      "destroyed": 41,
+      "major-damage": 0,
+      "minor-damage": 2,
+      "no-damage": 4
+    },
+    "pre_image_url": "/api/v1/disasters/socal-fire_00000114/pre-image",
+    "post_image_url": "/api/v1/disasters/socal-fire_00000114/post-image",
+    "geojson_url": "/api/v1/disasters/socal-fire_00000114/geojson"
+  },
+  {
+    "id": "socal-fire_00001001",
+    "event": "socal-fire",
+    "name": "\ud83d\udd25 SoCal Woolsey / Thomas Wildfire (00001001)",
+    "location": "Malibu / Ventura County, CA, USA",
+    "disaster_type": "wildfire",
+    "description": "Rapidly spreading brush fire destroying hillside residential structures.",
+    "icon": "\ud83d\udd25",
+    "center": [
+      -118.82597494656335,
+      34.031824873930034
+    ],
+    "bbox": [
+      -118.828124445964,
+      34.02969573424321,
+      -118.8243872116591,
+      34.03324598225719
+    ],
+    "image_coords": [
+      [
+        -118.82855887508236,
+        34.03390072426306
+      ],
+      [
+        -118.82348162978046,
+        34.033976157873255
+      ],
+      [
+        -118.82339101804435,
+        34.029749023597006
+      ],
+      [
+        -118.82846826334625,
+        34.02967358998681
+      ]
+    ],
+    "total_buildings": 44,
+    "damage_breakdown": {
+      "destroyed": 33,
+      "major-damage": 0,
+      "minor-damage": 7,
+      "no-damage": 4
+    },
+    "pre_image_url": "/api/v1/disasters/socal-fire_00001001/pre-image",
+    "post_image_url": "/api/v1/disasters/socal-fire_00001001/post-image",
+    "geojson_url": "/api/v1/disasters/socal-fire_00001001/geojson"
+  }
+]

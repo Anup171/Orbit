@@ -5,10 +5,12 @@
  * satellite imagery using synchronized dual MapLibre viewports.
  *
  * Architecture:
- *   - Post-Disaster Map (Bottom layer): High-resolution post-disaster satellite view
- *     with overlaid building damage assessments, priority highlights, and routes.
- *   - Pre-Disaster Map (Top layer): High-resolution pre-disaster satellite imagery,
- *     physically clipped to the LEFT side using CSS clipPath.
+ *   - Post-Disaster Map (Bottom layer): High-resolution post-disaster satellite imagery
+ *     overlaid with the real Maxar post-disaster destruction photo, building damage assessments,
+ *     global disaster zone markers, and rescue routes.
+ *   - Pre-Disaster Map (Top layer): High-resolution pre-disaster satellite imagery
+ *     overlaid with the real Maxar pre-disaster baseline photo, highlighted scene perimeter,
+ *     and intact building outlines, physically clipped to the LEFT side using CSS clipPath.
  *   - Draggable Slider Bar: Divides pre-disaster on the left from post-disaster on the right.
  *   - Camera Synchronizer: Real-time 60fps mirror of center, zoom, bearing, and pitch.
  */
@@ -16,19 +18,20 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 
-const DEFAULT_CENTER = [-122.4185, 37.7746]; // San Francisco disaster sample coordinates
+const DEFAULT_CENTER = [-122.716, 38.473];
 const DEFAULT_ZOOM = 16.5;
 
-// Satellite tile sources
-const PRE_SATELLITE_TILES = [
+const SATELLITE_TILES = [
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 ];
 
-const POST_SATELLITE_TILES = [
-  'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-];
-
-export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM }) {
+export default function SwipeMap({
+  children,
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+  imageOverlay = null,
+  geojsonData = null,
+}) {
   const containerRef = useRef(null);
   const postContainerRef = useRef(null);
   const preContainerRef = useRef(null);
@@ -37,7 +40,7 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
   const preMapRef = useRef(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [swipePosition, setSwipePosition] = useState(50); // percentage (0 - 100)
+  const [swipePosition, setSwipePosition] = useState(50);
   const isDragging = useRef(false);
 
   useEffect(() => {
@@ -52,9 +55,9 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
         sources: {
           'post-satellite': {
             type: 'raster',
-            tiles: POST_SATELLITE_TILES,
+            tiles: SATELLITE_TILES,
             tileSize: 256,
-            attribution: 'Post-Disaster Satellite Imagery',
+            attribution: 'Post-Disaster Satellite Imagery (ESRI / Maxar)',
             maxzoom: 20,
           },
         },
@@ -84,7 +87,7 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
         sources: {
           'pre-satellite': {
             type: 'raster',
-            tiles: PRE_SATELLITE_TILES,
+            tiles: SATELLITE_TILES,
             tileSize: 256,
             attribution: 'Pre-Disaster Satellite (ESRI)',
             maxzoom: 20,
@@ -102,7 +105,7 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
       },
       center,
       zoom,
-      attributionControl: false, // Avoid duplicate attribution
+      attributionControl: false,
     });
 
     // 3. Bidirectional Camera Synchronizer
@@ -123,17 +126,196 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
     postMap.on('move', () => syncMaps(postMap, preMap));
     preMap.on('move', () => syncMaps(preMap, postMap));
 
+    let postReady = false;
+    let preReady = false;
+
+    const checkBothReady = () => {
+      if (postReady && preReady) {
+        postMapRef.current = postMap;
+        preMapRef.current = preMap;
+        setMapLoaded(true);
+      }
+    };
+
     postMap.on('load', () => {
-      postMapRef.current = postMap;
-      preMapRef.current = preMap;
-      setMapLoaded(true);
+      postReady = true;
+      checkBothReady();
+    });
+
+    preMap.on('load', () => {
+      preReady = true;
+      checkBothReady();
     });
 
     return () => {
       postMap.remove();
       preMap.remove();
+      postMapRef.current = null;
+      preMapRef.current = null;
     };
   }, []);
+
+  // Update camera view when center or zoom changes
+  useEffect(() => {
+    if (!mapLoaded || !center) return;
+    if (postMapRef.current) {
+      postMapRef.current.flyTo({
+        center,
+        zoom: zoom || 16.5,
+        essential: true,
+        duration: 1200,
+      });
+    }
+  }, [mapLoaded, center, zoom]);
+
+  // Update raster Maxar image overlays & Pre-Disaster area highlight whenever imageOverlay changes
+  useEffect(() => {
+    if (!mapLoaded || !imageOverlay) return;
+
+    const { pre_image_url, post_image_url, image_coords } = imageOverlay;
+    if (!image_coords || image_coords.length < 4) return;
+
+    const upsertImageOverlay = (map, srcId, layerId, url, coords, beforeLayerId) => {
+      if (!map || !url) return;
+      try {
+        const existingSrc = map.getSource(srcId);
+        if (existingSrc && typeof existingSrc.updateImage === 'function') {
+          existingSrc.updateImage({ url, coordinates: coords });
+        } else {
+          if (map.getLayer(layerId)) map.removeLayer(layerId);
+          if (map.getSource(srcId)) map.removeSource(srcId);
+
+          map.addSource(srcId, {
+            type: 'image',
+            url,
+            coordinates: coords,
+          });
+
+          const before = beforeLayerId && map.getLayer(beforeLayerId) ? beforeLayerId : undefined;
+          map.addLayer(
+            {
+              id: layerId,
+              type: 'raster',
+              source: srcId,
+              paint: {
+                'raster-opacity': 1.0,
+                'raster-fade-duration': 0,
+              },
+            },
+            before
+          );
+        }
+      } catch (err) {
+        console.warn(`Overlay error for ${layerId}:`, err);
+      }
+    };
+
+    // 1. Pre-Disaster Image Overlay (Left Map)
+    upsertImageOverlay(
+      preMapRef.current,
+      'pre-disaster-image-src',
+      'pre-disaster-image-layer',
+      pre_image_url,
+      image_coords,
+      'pre-area-highlight-fill'
+    );
+
+    // 2. Highlight Pre-Disaster Scene Area Perimeter on Left Map
+    if (preMapRef.current) {
+      const preMap = preMapRef.current;
+      const ring = [...image_coords, image_coords[0]];
+      const areaGeojson = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [ring],
+            },
+          },
+        ],
+      };
+
+      if (preMap.getSource('pre-area-highlight-src')) {
+        preMap.getSource('pre-area-highlight-src').setData(areaGeojson);
+      } else {
+        preMap.addSource('pre-area-highlight-src', {
+          type: 'geojson',
+          data: areaGeojson,
+        });
+        preMap.addLayer({
+          id: 'pre-area-highlight-fill',
+          type: 'fill',
+          source: 'pre-area-highlight-src',
+          paint: {
+            'fill-color': '#2ecc71',
+            'fill-opacity': 0.06,
+          },
+        });
+        preMap.addLayer({
+          id: 'pre-area-highlight-line',
+          type: 'line',
+          source: 'pre-area-highlight-src',
+          paint: {
+            'line-color': '#2ecc71',
+            'line-width': 3,
+            'line-dasharray': [3, 2],
+            'line-opacity': 0.95,
+          },
+        });
+      }
+    }
+
+    // 3. Post-Disaster Image Overlay (Right Map — always underneath damage polygons)
+    upsertImageOverlay(
+      postMapRef.current,
+      'post-disaster-image-src',
+      'post-disaster-image-layer',
+      post_image_url,
+      image_coords,
+      'damage-polygons-fill'
+    );
+  }, [mapLoaded, imageOverlay]);
+
+  // Render subtle intact green building outlines on the Pre-Disaster map for direct comparison
+  useEffect(() => {
+    if (!mapLoaded || !preMapRef.current || !geojsonData) return;
+    const preMap = preMapRef.current;
+    const buildingFeatures = (geojsonData.features || []).filter(
+      (f) => f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+    );
+    const safeGeojson = { type: 'FeatureCollection', features: buildingFeatures };
+
+    if (preMap.getSource('pre-buildings-src')) {
+      preMap.getSource('pre-buildings-src').setData(safeGeojson);
+    } else {
+      preMap.addSource('pre-buildings-src', {
+        type: 'geojson',
+        data: safeGeojson,
+      });
+      preMap.addLayer({
+        id: 'pre-buildings-fill',
+        type: 'fill',
+        source: 'pre-buildings-src',
+        paint: {
+          'fill-color': '#2ecc71',
+          'fill-opacity': 0.1,
+        },
+      });
+      preMap.addLayer({
+        id: 'pre-buildings-line',
+        type: 'line',
+        source: 'pre-buildings-src',
+        paint: {
+          'line-color': '#58d68d',
+          'line-width': 1.5,
+          'line-opacity': 0.85,
+        },
+      });
+    }
+  }, [mapLoaded, geojsonData]);
 
   // Mouse / Touch handlers for dragging the split divider
   const handleDragStart = (e) => {
@@ -196,7 +378,7 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
           zIndex: 2,
           clipPath: `inset(0 ${100 - swipePosition}% 0 0)`,
           WebkitClipPath: `inset(0 ${100 - swipePosition}% 0 0)`,
-          pointerEvents: 'none', // All user drag/zoom/click inputs pass directly to the interactive map
+          pointerEvents: 'none',
         }}
       />
 
@@ -211,22 +393,21 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
           transform: 'translateX(-50%)',
           width: 6,
           height: '100%',
-          background: 'linear-gradient(to bottom, #00d2ff, #ffffff, #00d2ff)',
+          background: 'linear-gradient(to bottom, #2ecc71, #ffffff, #e74c3c)',
           cursor: 'col-resize',
           zIndex: 10,
-          boxShadow: '0 0 14px rgba(0, 210, 255, 0.9), 0 0 4px rgba(0,0,0,0.8)',
+          boxShadow: '0 0 16px rgba(0, 210, 255, 0.9), 0 0 4px rgba(0,0,0,0.8)',
           pointerEvents: 'auto',
         }}
       >
-        {/* Circular grip badge */}
         <div
           style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             borderRadius: '50%',
             background: '#121212',
             border: '2px solid #00d2ff',
@@ -246,33 +427,32 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
       </div>
 
       {/* ── 4. Split Side Indicator Badges ──────────────────────────── */}
-      {/* Pre-Disaster Badge (Left) */}
       <div
         style={{
           position: 'absolute',
           top: 16,
-          left: Math.max(16, (swipePosition * 0.5) - 60) + '%',
+          left: Math.max(16, (swipePosition * 0.5)) + '%',
           transform: 'translateX(-50%)',
           zIndex: 5,
-          background: 'rgba(10, 25, 20, 0.88)',
+          background: 'rgba(10, 35, 22, 0.92)',
           backdropFilter: 'blur(6px)',
-          border: '1px solid #2ecc71',
+          border: '1.5px solid #2ecc71',
           borderRadius: 20,
           padding: '5px 14px',
           color: '#2ecc71',
           fontSize: 12,
           fontWeight: '700',
           letterSpacing: 0.5,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          boxShadow: '0 2px 12px rgba(46, 204, 113, 0.35)',
           pointerEvents: 'none',
-          opacity: swipePosition > 15 ? 1 : 0,
+          opacity: swipePosition > 18 ? 1 : 0,
           transition: 'opacity 0.2s',
+          whiteSpace: 'nowrap',
         }}
       >
-        🛰️ PRE-DISASTER SATELLITE
+        🛰️ PRE-DISASTER BASELINE
       </div>
 
-      {/* Post-Disaster Badge (Right) */}
       <div
         style={{
           position: 'absolute',
@@ -280,22 +460,23 @@ export default function SwipeMap({ children, center = DEFAULT_CENTER, zoom = DEF
           left: Math.min(84, swipePosition + ((100 - swipePosition) * 0.5)) + '%',
           transform: 'translateX(-50%)',
           zIndex: 5,
-          background: 'rgba(30, 15, 15, 0.88)',
+          background: 'rgba(35, 12, 12, 0.92)',
           backdropFilter: 'blur(6px)',
-          border: '1px solid #e74c3c',
+          border: '1.5px solid #e74c3c',
           borderRadius: 20,
           padding: '5px 14px',
           color: '#ff6b6b',
           fontSize: 12,
           fontWeight: '700',
           letterSpacing: 0.5,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          boxShadow: '0 2px 12px rgba(231, 76, 60, 0.35)',
           pointerEvents: 'none',
-          opacity: (100 - swipePosition) > 15 ? 1 : 0,
+          opacity: (100 - swipePosition) > 18 ? 1 : 0,
           transition: 'opacity 0.2s',
+          whiteSpace: 'nowrap',
         }}
       >
-        🚨 POST-DISASTER SATELLITE + DAMAGE
+        🚨 POST-DISASTER DESTRUCTION
       </div>
 
       {/* ── 5. Quick Percentage Jump Controls (Bottom Center) ────────── */}
